@@ -1,0 +1,13 @@
+**/.git
+**/.gitignore
+**/.vscode
+**/.idea
+**/node_modules
+**/vendor
+**/.env
+**/.env.*
+**/npm-debug.log
+**/yarn-error.log
+**/.DS_Store
+**/Thumbs.db
+

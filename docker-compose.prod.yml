@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_PROD}
+    restart: always
+
+  redis:
+    command: redis-server --port 6379 --requirepass ${REDIS_PASSWORD_PROD}
+    restart: always
+
+  backend:
+    environment:
+      APP_ENV: production
+      APP_DEBUG: false
+      DB_PASSWORD: ${POSTGRES_PASSWORD_PROD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD_PROD}
+    restart: always
+
+  frontend:
+    environment:
+      NODE_ENV: production
+    restart: always
+
+  supplier-rating-service:
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD_PROD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD_PROD}
+    restart: always
+
+  parts-matching-service:
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD_PROD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD_PROD}
+    restart: always
+
+  price-analysis-service:
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD_PROD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD_PROD}
+    restart: always
+
+  quality-control-service:
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD_PROD}
+      DB_PASSWORD: ${POSTGRES_PASSWORD_PROD}
+    restart: always
+
+  nginx:
+    restart: always
+
+  supervisor:
+    restart: always
+
