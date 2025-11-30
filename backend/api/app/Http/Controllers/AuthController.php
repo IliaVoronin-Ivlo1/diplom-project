@@ -5,31 +5,40 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Mail\VerifyEmailMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request)
     {
         try {
-            $user = User::create([
+            DB::table('email_verifications')->where('email', $request->email)->delete();
+
+            $token = Str::random(32);
+            
+            DB::table('email_verifications')->insert([
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
+                'token' => $token,
+                'expires_at' => now()->addHours(24),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $verificationUrl = env('APP_URL') . '/api/auth/verify-email?token=' . $token;
+
+            Mail::to($request->email)->send(new VerifyEmailMail($verificationUrl, $request->email));
 
             return response()->json([
                 'success' => true,
-                'message' => 'Регистрация прошла успешно',
-                'token' => $token,
-                'user' => [
-                    'email' => $user->email,
-                    'created_at' => $user->created_at,
-                ]
-            ], 201);
+                'message' => 'Письмо с подтверждением отправлено на ваш email'
+            ], 200);
         } catch (\Exception $e) {
             Log::error('AuthController[register]', [
                 'error' => $e->getMessage(),
@@ -39,6 +48,48 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Ошибка сервера при регистрации'
             ], 500);
+        }
+    }
+
+    public function verifyEmail(Request $request)
+    {
+        $token = $request->query('token');
+
+        if (!$token) {
+            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=invalid_token');
+        }
+
+        try {
+            $verification = DB::table('email_verifications')
+                ->where('token', $token)
+                ->first();
+
+            if (!$verification) {
+                return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=invalid_token');
+            }
+
+            if (now()->greaterThan($verification->expires_at)) {
+                DB::table('email_verifications')->where('token', $token)->delete();
+                return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=token_expired');
+            }
+
+            $user = User::create([
+                'email' => $verification->email,
+                'password' => $verification->password,
+            ]);
+
+            DB::table('email_verifications')->where('token', $token)->delete();
+
+            $authToken = $user->createToken('auth_token')->plainTextToken;
+
+            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/?token=' . $authToken . '&registered=true');
+        } catch (\Exception $e) {
+            Log::error('AuthController[verifyEmail]', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=server_error');
         }
     }
 

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, FormEvent, ChangeEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import authService from '@/services/auth.service';
 import { LoginRequest, RegisterRequest, ValidationError } from '@/models/auth.model';
 import styles from './login.module.css';
@@ -10,10 +10,29 @@ type FormMode = 'login' | 'register';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<FormMode>('login');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      switch (error) {
+        case 'invalid_token':
+          setErrorMessage('Неверная или устаревшая ссылка подтверждения');
+          break;
+        case 'token_expired':
+          setErrorMessage('Срок действия ссылки истек. Пожалуйста, зарегистрируйтесь снова');
+          break;
+        case 'server_error':
+          setErrorMessage('Произошла ошибка сервера. Попробуйте позже');
+          break;
+      }
+      window.history.replaceState({}, '', '/login');
+    }
+  }, [searchParams]);
 
   const [loginData, setLoginData] = useState<LoginRequest>({
     email: '',
@@ -106,15 +125,13 @@ export default function LoginPage() {
     try {
       const response = await authService.register(registerData);
       
-      if (response.token) {
-        authService.setToken(response.token);
-      }
+      setSuccessMessage(response.message || 'Письмо с подтверждением отправлено на ваш email');
       
-      setSuccessMessage(response.message || 'Успешная регистрация');
-      
-      setTimeout(() => {
-        router.push('/');
-      }, 1000);
+      setRegisterData({
+        email: '',
+        password: '',
+        password_confirmation: '',
+      });
     } catch (error: any) {
       const status = error.response?.status;
       

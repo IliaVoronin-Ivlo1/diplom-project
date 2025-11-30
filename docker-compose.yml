@@ -53,6 +53,15 @@ services:
       PARTS_MATCHING_SERVICE_URL: http://diplom_parts_matching_service:8002
       PRICE_ANALYSIS_SERVICE_URL: http://diplom_price_analysis_service:8003
       QUALITY_CONTROL_SERVICE_URL: http://diplom_quality_control_service:8004
+      MAIL_MAILER: smtp
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: ivlowone@gmail.com
+      MAIL_PASSWORD: uhhb tmmj vnof zpvi
+      MAIL_ENCRYPTION: tls
+      MAIL_FROM_ADDRESS: ivlowone@gmail.com
+      MAIL_FROM_NAME: Corstat
+      APP_URL: http://localhost:8080
     volumes:
       - ./backend/api:/var/www
     ports:
