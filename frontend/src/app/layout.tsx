@@ -1,6 +1,8 @@
+import './globals.css';
+
 export const metadata = {
-  title: 'Diplom Project',
-  description: 'Дипломный проект с микросервисной архитектурой',
+  title: 'Corstat - Анализ поставщиков автозапчастей',
+  description: 'Платформа для анализа и оценки поставщиков автомобильных запчастей',
 }
 
 export default function RootLayout({

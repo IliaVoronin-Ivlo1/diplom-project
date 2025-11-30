@@ -17,22 +17,28 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    console.log(`Запрос ${config.method?.toUpperCase()} ${config.url}`);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
-    console.error('Ошибка запроса', error);
     return Promise.reject(error);
   }
 );
 
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`Ответ получен ${response.config.url}`);
     return response;
   },
   (error) => {
-    console.error('Ошибка ответа', error.response?.status, error.message);
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+        window.location.href = '/login';
+      }
+    }
     return Promise.reject(error);
   }
 );
