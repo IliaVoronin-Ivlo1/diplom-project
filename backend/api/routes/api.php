@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use App\Http\Controllers\AuthController;
 
 Route::get('/health', function () {
     return response()->json([
@@ -15,7 +16,7 @@ Route::get('/test', function () {
     return response()->json([
         'message' => 'Тестовый маршрут работает',
         'data' => [
-            'backend' => 'Laravel 11',
+            'backend' => 'Laravel 12',
             'database' => 'Corstat',
             'services' => [
                 'supplier-rating-service' => 'Анализ поставщиков',
@@ -36,5 +37,15 @@ Route::post('/test', function (Request $request) {
         'received_data' => $data,
         'processed_at' => now()->format('Y-m-d H:i:s')
     ]);
+});
+
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/user', [AuthController::class, 'user']);
+    });
 });
 

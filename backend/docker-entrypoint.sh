@@ -1,5 +1,10 @@
 #!/bin/sh
 
+echo "Установка зависимостей Composer"
+if [ -f "composer.json" ]; then
+    composer install --no-interaction --prefer-dist --optimize-autoloader
+fi
+
 echo "Ожидание PostgreSQL"
 until php artisan db:monitor > /dev/null 2>&1; do
     echo "PostgreSQL недоступен - ожидание"
