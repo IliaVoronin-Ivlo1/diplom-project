@@ -26,7 +26,6 @@ class AuthController extends Controller
                 'message' => 'Регистрация прошла успешно',
                 'token' => $token,
                 'user' => [
-                    'id' => $user->id,
                     'email' => $user->email,
                     'created_at' => $user->created_at,
                 ]
@@ -61,7 +60,6 @@ class AuthController extends Controller
                 'message' => 'Авторизация прошла успешно',
                 'token' => $token,
                 'user' => [
-                    'id' => $user->id,
                     'email' => $user->email,
                     'created_at' => $user->created_at,
                 ]
