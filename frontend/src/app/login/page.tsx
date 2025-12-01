@@ -247,6 +247,14 @@ export default function LoginPage() {
                 onChange={handleLoginChange}
               />
               
+              {successMessage && (
+                <SuccessMessage message={successMessage} />
+              )}
+
+              {errorMessage && (
+                <ErrorMessage message={errorMessage} />
+              )}
+              
               {loginFailed && (
                 <button
                   type="button"
@@ -259,21 +267,23 @@ export default function LoginPage() {
             </>
           )
         ) : (
-          <RegisterForm
-            registerData={registerData}
-            loading={loading}
-            validationErrors={validationErrors}
-            onSubmit={handleRegisterSubmit}
-            onChange={handleRegisterChange}
-          />
-        )}
+          <>
+            <RegisterForm
+              registerData={registerData}
+              loading={loading}
+              validationErrors={validationErrors}
+              onSubmit={handleRegisterSubmit}
+              onChange={handleRegisterChange}
+            />
+            
+            {successMessage && (
+              <SuccessMessage message={successMessage} />
+            )}
 
-        {successMessage && (
-          <SuccessMessage message={successMessage} />
-        )}
-
-        {errorMessage && (
-          <ErrorMessage message={errorMessage} />
+            {errorMessage && (
+              <ErrorMessage message={errorMessage} />
+            )}
+          </>
         )}
       </div>
     </div>
