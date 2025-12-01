@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\EmailVerification;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
 use App\Mail\VerifyEmailMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -18,17 +18,15 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         try {
-            DB::table('email_verifications')->where('email', $request->email)->delete();
+            EmailVerification::where('email', $request->email)->delete();
 
             $token = Str::random(32);
             
-            DB::table('email_verifications')->insert([
+            EmailVerification::create([
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'token' => $token,
                 'expires_at' => now()->addHours(24),
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
 
             $verificationUrl = env('APP_URL') . '/api/auth/verify-email?token=' . $token;
@@ -60,16 +58,14 @@ class AuthController extends Controller
         }
 
         try {
-            $verification = DB::table('email_verifications')
-                ->where('token', $token)
-                ->first();
+            $verification = EmailVerification::where('token', $token)->first();
 
             if (!$verification) {
                 return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=invalid_token');
             }
 
             if (now()->greaterThan($verification->expires_at)) {
-                DB::table('email_verifications')->where('token', $token)->delete();
+                $verification->delete();
                 return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=token_expired');
             }
 
@@ -78,7 +74,7 @@ class AuthController extends Controller
                 'password' => $verification->password,
             ]);
 
-            DB::table('email_verifications')->where('token', $token)->delete();
+            $verification->delete();
 
             $authToken = $user->createToken('auth_token')->plainTextToken;
 

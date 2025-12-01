@@ -7,9 +7,9 @@ use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Mail\ResetPasswordMail;
 use App\Models\User;
+use App\Models\PasswordResetToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -49,11 +49,11 @@ class ProfileController extends Controller
         try {
             $user = $request->user();
             
-            DB::table('password_reset_tokens')->where('email', $user->email)->delete();
+            PasswordResetToken::where('email', $user->email)->delete();
 
             $token = Str::random(32);
             
-            DB::table('password_reset_tokens')->insert([
+            PasswordResetToken::create([
                 'email' => $user->email,
                 'token' => Hash::make($token),
                 'created_at' => now(),
@@ -84,11 +84,11 @@ class ProfileController extends Controller
         try {
             $user = User::where('email', $request->email)->first();
             
-            DB::table('password_reset_tokens')->where('email', $user->email)->delete();
+            PasswordResetToken::where('email', $user->email)->delete();
 
             $token = Str::random(32);
             
-            DB::table('password_reset_tokens')->insert([
+            PasswordResetToken::create([
                 'email' => $user->email,
                 'token' => Hash::make($token),
                 'created_at' => now(),
@@ -126,9 +126,7 @@ class ProfileController extends Controller
         }
 
         try {
-            $resetRecord = DB::table('password_reset_tokens')
-                ->where('email', $email)
-                ->first();
+            $resetRecord = PasswordResetToken::where('email', $email)->first();
 
             if (!$resetRecord) {
                 return response()->json([
@@ -143,7 +141,7 @@ class ProfileController extends Controller
             }
 
             if (now()->diffInHours($resetRecord->created_at) > 1) {
-                DB::table('password_reset_tokens')->where('email', $email)->delete();
+                $resetRecord->delete();
                 return response()->json([
                     'message' => 'Срок действия токена истек'
                 ], 410);
@@ -160,7 +158,7 @@ class ProfileController extends Controller
             $user->password = Hash::make($request->password);
             $user->save();
 
-            DB::table('password_reset_tokens')->where('email', $email)->delete();
+            $resetRecord->delete();
 
             return response()->json([
                 'success' => true,
