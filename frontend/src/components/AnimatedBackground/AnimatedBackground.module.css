@@ -68,30 +68,44 @@
 }
 
 @keyframes line-travel-horizontal {
-  0%, 100% {
+  0% {
     opacity: 0;
     transform: translateX(-100%);
   }
-  10%, 90% {
+  10% {
     opacity: 0.4;
   }
   50% {
     opacity: 0.6;
     transform: translateX(0);
   }
+  90% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
 }
 
 @keyframes line-travel-vertical {
-  0%, 100% {
+  0% {
     opacity: 0;
     transform: translateY(-100%);
   }
-  10%, 90% {
+  10% {
     opacity: 0.4;
   }
   50% {
     opacity: 0.6;
     transform: translateY(0);
+  }
+  90% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
   }
 }
 
