@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\EmailVerification;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\VerifyEmailRequest;
 use App\Mail\VerifyEmailMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -29,7 +30,7 @@ class AuthController extends Controller
                 'expires_at' => now()->addHours(24),
             ]);
 
-            $verificationUrl = env('APP_URL') . '/api/auth/verify-email?token=' . $token;
+            $verificationUrl = env('APP_URL') . '/api/auth/verify-email?token=' . urlencode($token);
 
             Mail::to($request->email)->send(new VerifyEmailMail($verificationUrl, $request->email));
 
@@ -49,24 +50,20 @@ class AuthController extends Controller
         }
     }
 
-    public function verifyEmail(Request $request)
+    public function verifyEmail(VerifyEmailRequest $request)
     {
-        $token = $request->query('token');
-
-        if (!$token) {
-            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=invalid_token');
-        }
+        $token = $request->validated()['token'];
 
         try {
             $verification = EmailVerification::where('token', $token)->first();
 
             if (!$verification) {
-                return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=invalid_token');
+                return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=' . urlencode('invalid_token'));
             }
 
             if (now()->greaterThan($verification->expires_at)) {
                 $verification->delete();
-                return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=token_expired');
+                return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=' . urlencode('token_expired'));
             }
 
             $user = User::create([
@@ -78,14 +75,14 @@ class AuthController extends Controller
 
             $authToken = $user->createToken('auth_token')->plainTextToken;
 
-            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/profile?token=' . $authToken . '&registered=true');
+            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/profile?token=' . urlencode($authToken) . '&registered=true');
         } catch (\Exception $e) {
             Log::error('AuthController[verifyEmail]', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=server_error');
+            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=' . urlencode('server_error'));
         }
     }
 

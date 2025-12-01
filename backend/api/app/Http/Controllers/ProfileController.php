@@ -59,7 +59,7 @@ class ProfileController extends Controller
                 'created_at' => now(),
             ]);
 
-            $resetUrl = env('FRONTEND_URL', 'http://localhost:8080') . '/reset-password?token=' . $token . '&email=' . urlencode($user->email);
+            $resetUrl = env('FRONTEND_URL', 'http://localhost:8080') . '/reset-password?token=' . urlencode($token) . '&email=' . urlencode($user->email);
 
             Mail::to($user->email)->send(new ResetPasswordMail($resetUrl, $user->email));
 
@@ -94,7 +94,7 @@ class ProfileController extends Controller
                 'created_at' => now(),
             ]);
 
-            $resetUrl = env('FRONTEND_URL', 'http://localhost:8080') . '/reset-password?token=' . $token . '&email=' . urlencode($user->email);
+            $resetUrl = env('FRONTEND_URL', 'http://localhost:8080') . '/reset-password?token=' . urlencode($token) . '&email=' . urlencode($user->email);
 
             Mail::to($user->email)->send(new ResetPasswordMail($resetUrl, $user->email));
 
@@ -116,14 +116,9 @@ class ProfileController extends Controller
 
     public function resetPassword(ResetPasswordRequest $request)
     {
-        $email = $request->query('email');
-        $token = $request->query('token');
-
-        if (!$email || !$token) {
-            return response()->json([
-                'message' => 'Неверные параметры запроса'
-            ], 400);
-        }
+        $validated = $request->validated();
+        $email = $validated['email'];
+        $token = $validated['token'];
 
         try {
             $resetRecord = PasswordResetToken::where('email', $email)->first();

@@ -25,4 +25,13 @@ class UpdateNameRequest extends FormRequest
             'name.max' => 'Имя не должно превышать 255 символов',
         ];
     }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('name') && $this->name !== null) {
+            $this->merge([
+                'name' => strip_tags($this->name),
+            ]);
+        }
+    }
 }
