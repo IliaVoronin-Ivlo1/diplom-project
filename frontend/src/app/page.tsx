@@ -17,20 +17,6 @@ export default function Home() {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    const registered = searchParams.get('registered');
-
-    if (token && registered === 'true') {
-      authService.setToken(token);
-      setRegistrationSuccess(true);
-      
-      window.history.replaceState({}, '', '/');
-      
-      setTimeout(() => {
-        setRegistrationSuccess(false);
-      }, 5000);
-    }
-
     wsClient.connect();
 
     wsClient.on('connect', () => {
@@ -101,19 +87,6 @@ export default function Home() {
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
       <h1 style={{ color: '#333' }}>Diplom Project - Corstat</h1>
-      
-      {registrationSuccess && (
-        <div style={{ 
-          padding: '15px', 
-          backgroundColor: '#d4edda', 
-          border: '1px solid #c3e6cb',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          color: '#155724'
-        }}>
-          <strong>Регистрация успешно завершена!</strong> Добро пожаловать в систему Corstat.
-        </div>
-      )}
       
       <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
         <h2 style={{ marginTop: 0 }}>Статус подключений</h2>

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/health', function () {
     return response()->json([
@@ -49,4 +50,11 @@ Route::prefix('auth')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
     });
 });
+
+Route::middleware('auth:sanctum')->prefix('profile')->group(function () {
+    Route::put('/update-name', [ProfileController::class, 'updateName']);
+    Route::post('/request-password-reset', [ProfileController::class, 'requestPasswordReset']);
+});
+
+Route::post('/profile/reset-password', [ProfileController::class, 'resetPassword']);
 

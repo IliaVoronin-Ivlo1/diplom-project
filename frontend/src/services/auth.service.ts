@@ -16,6 +16,11 @@ class AuthService {
     await apiClient.post('/auth/logout');
   }
 
+  async getCurrentUser() {
+    const response = await apiClient.get('/auth/user');
+    return response.data.user;
+  }
+
   setToken(token: string): void {
     if (typeof window !== 'undefined') {
       localStorage.setItem('auth_token', token);

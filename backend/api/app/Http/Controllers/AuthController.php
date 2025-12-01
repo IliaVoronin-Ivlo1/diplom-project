@@ -82,7 +82,7 @@ class AuthController extends Controller
 
             $authToken = $user->createToken('auth_token')->plainTextToken;
 
-            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/?token=' . $authToken . '&registered=true');
+            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/profile?token=' . $authToken . '&registered=true');
         } catch (\Exception $e) {
             Log::error('AuthController[verifyEmail]', [
                 'error' => $e->getMessage(),

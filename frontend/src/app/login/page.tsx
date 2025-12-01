@@ -97,7 +97,7 @@ export default function LoginPage() {
       setSuccessMessage(response.message || 'Успешная авторизация');
       
       setTimeout(() => {
-        router.push('/');
+        router.push('/profile');
       }, 1000);
     } catch (error: any) {
       const status = error.response?.status;
