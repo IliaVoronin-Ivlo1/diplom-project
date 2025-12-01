@@ -1,0 +1,72 @@
+.gridCell {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: rgba(74, 158, 255, 0.05);
+  border: 1px solid rgba(74, 158, 255, 0.1);
+  opacity: 0;
+  z-index: 0;
+  animation: cell-glow 4s ease-in-out infinite;
+}
+
+.gridCell:nth-child(1) {
+  top: 10%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.gridCell:nth-child(2) {
+  top: 40%;
+  left: 70%;
+  animation-delay: 1.2s;
+}
+
+.gridCell:nth-child(3) {
+  top: 70%;
+  left: 25%;
+  animation-delay: 2.4s;
+}
+
+.gridCell:nth-child(4) {
+  top: 25%;
+  left: 80%;
+  animation-delay: 3.6s;
+}
+
+.gridCell:nth-child(5) {
+  top: 85%;
+  left: 60%;
+  animation-delay: 1.8s;
+}
+
+.gridCell:nth-child(6) {
+  top: 55%;
+  left: 10%;
+  animation-delay: 3s;
+}
+
+.gridCell:nth-child(7) {
+  top: 15%;
+  left: 45%;
+  animation-delay: 0.6s;
+}
+
+.gridCell:nth-child(8) {
+  top: 60%;
+  left: 85%;
+  animation-delay: 2s;
+}
+
+@keyframes cell-glow {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(74, 158, 255, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
+  }
+}
+

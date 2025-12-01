@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import profileService from '@/services/profile.service';
+import AnimatedBackground from '@/components/AnimatedBackground/AnimatedBackground';
+import SuccessMessage from '@/components/messages/SuccessMessage/SuccessMessage';
+import ErrorMessage from '@/components/messages/ErrorMessage/ErrorMessage';
 import styles from '../login/login.module.css';
 
 export default function ResetPasswordPage() {
@@ -71,16 +74,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className={styles.container}>
-      <div className={`${styles.gridLine} ${styles.gridLineHorizontal}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineVertical}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineHorizontal}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineVertical}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineHorizontal}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineVertical}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineHorizontal}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineVertical}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineHorizontal}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineVertical}`}></div>
+      <AnimatedBackground />
       
       <div className={styles.formWrapper}>
         <div className={styles.logoContainer}>
@@ -148,11 +142,11 @@ export default function ResetPasswordPage() {
         </form>
 
         {successMessage && (
-          <div className={styles.successMessage}>{successMessage}</div>
+          <SuccessMessage message={successMessage} />
         )}
 
         {errorMessage && (
-          <div className={styles.errorMessage}>{errorMessage}</div>
+          <ErrorMessage message={errorMessage} />
         )}
       </div>
     </div>

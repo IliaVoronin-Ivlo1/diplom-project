@@ -11,6 +11,11 @@ class ProfileService {
     return response.data;
   }
 
+  async forgotPassword(email: string) {
+    const response = await apiClient.post('/auth/forgot-password', { email });
+    return response.data;
+  }
+
   async resetPassword(email: string, token: string, password: string, passwordConfirmation: string) {
     const response = await apiClient.post(`/profile/reset-password?email=${encodeURIComponent(email)}&token=${token}`, {
       password,

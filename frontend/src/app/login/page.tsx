@@ -3,7 +3,14 @@
 import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import authService from '@/services/auth.service';
+import profileService from '@/services/profile.service';
 import { LoginRequest, RegisterRequest, ValidationError } from '@/models/auth.model';
+import LoginForm from '@/components/LoginForm/LoginForm';
+import RegisterForm from '@/components/RegisterForm/RegisterForm';
+import ForgotPasswordForm from '@/components/ForgotPasswordForm/ForgotPasswordForm';
+import AnimatedBackground from '@/components/AnimatedBackground/AnimatedBackground';
+import SuccessMessage from '@/components/messages/SuccessMessage/SuccessMessage';
+import ErrorMessage from '@/components/messages/ErrorMessage/ErrorMessage';
 import styles from './login.module.css';
 
 type FormMode = 'login' | 'register';
@@ -32,7 +39,7 @@ export default function LoginPage() {
       }
       window.history.replaceState({}, '', '/login');
     }
-  }, [searchParams]);
+  }, []);
 
   const [loginData, setLoginData] = useState<LoginRequest>({
     email: '',
@@ -46,6 +53,12 @@ export default function LoginPage() {
   });
 
   const [validationErrors, setValidationErrors] = useState<ValidationError>({});
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotError, setForgotError] = useState('');
+  const [loginFailed, setLoginFailed] = useState(false);
 
   const clearMessages = () => {
     setSuccessMessage('');
@@ -56,6 +69,35 @@ export default function LoginPage() {
   const handleModeChange = (newMode: FormMode) => {
     setMode(newMode);
     clearMessages();
+    setShowForgotPassword(false);
+    setForgotSuccess(false);
+    setForgotError('');
+    setLoginFailed(false);
+  };
+
+  const handleForgotPasswordSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotSuccess(false);
+    setForgotLoading(true);
+
+    try {
+      const response = await profileService.forgotPassword(forgotEmail);
+      setForgotSuccess(true);
+      setForgotEmail('');
+    } catch (error: any) {
+      const status = error.response?.status;
+      
+      if (status === 422) {
+        setForgotError(error.response?.data?.message || 'Проверьте правильность email');
+      } else if (status === 500) {
+        setForgotError('Ошибка сервера. Попробуйте позже');
+      } else {
+        setForgotError(error.response?.data?.message || 'Произошла ошибка');
+      }
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   const handleLoginChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -95,6 +137,7 @@ export default function LoginPage() {
       }
       
       setSuccessMessage(response.message || 'Успешная авторизация');
+      setLoginFailed(false);
       
       setTimeout(() => {
         router.push('/profile');
@@ -102,7 +145,10 @@ export default function LoginPage() {
     } catch (error: any) {
       const status = error.response?.status;
       
-      if (status === 422) {
+      if (status === 401) {
+        setErrorMessage(error.response?.data?.message || 'Неверный email или пароль');
+        setLoginFailed(true);
+      } else if (status === 422) {
         setValidationErrors(error.response?.data?.errors || {});
         setErrorMessage('Проверьте правильность введенных данных');
       } else if (status === 400) {
@@ -152,16 +198,7 @@ export default function LoginPage() {
 
   return (
     <div className={styles.container}>
-      <div className={`${styles.gridLine} ${styles.gridLineHorizontal}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineVertical}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineHorizontal}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineVertical}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineHorizontal}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineVertical}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineHorizontal}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineVertical}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineHorizontal}`}></div>
-      <div className={`${styles.gridLine} ${styles.gridLineVertical}`}></div>
+      <AnimatedBackground />
       
       <div className={styles.formWrapper}>
         <div className={styles.logoContainer}>
@@ -186,133 +223,57 @@ export default function LoginPage() {
         </div>
 
         {mode === 'login' ? (
-          <form className={styles.form} onSubmit={handleLoginSubmit}>
-            <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="login-email">
-                Email
-              </label>
-              <input
-                id="login-email"
-                type="email"
-                name="email"
-                className={`${styles.input} ${validationErrors.email ? styles.error : ''}`}
-                placeholder="example@corstat.com"
-                value={loginData.email}
+          showForgotPassword ? (
+            <ForgotPasswordForm
+              email={forgotEmail}
+              loading={forgotLoading}
+              success={forgotSuccess}
+              error={forgotError}
+              onSubmit={handleForgotPasswordSubmit}
+              onEmailChange={setForgotEmail}
+              onBack={() => {
+                setShowForgotPassword(false);
+                setForgotSuccess(false);
+                setForgotError('');
+              }}
+            />
+          ) : (
+            <>
+              <LoginForm
+                loginData={loginData}
+                loading={loading}
+                validationErrors={validationErrors}
+                onSubmit={handleLoginSubmit}
                 onChange={handleLoginChange}
-                required
-                disabled={loading}
               />
-              {validationErrors.email && (
-                <span className={styles.errorText}>{validationErrors.email[0]}</span>
+              
+              {loginFailed && (
+                <button
+                  type="button"
+                  className={styles.forgotPasswordLink}
+                  onClick={() => setShowForgotPassword(true)}
+                >
+                  Забыли пароль?
+                </button>
               )}
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="login-password">
-                Пароль
-              </label>
-              <input
-                id="login-password"
-                type="password"
-                name="password"
-                className={`${styles.input} ${validationErrors.password ? styles.error : ''}`}
-                placeholder="Введите пароль"
-                value={loginData.password}
-                onChange={handleLoginChange}
-                required
-                disabled={loading}
-              />
-              {validationErrors.password && (
-                <span className={styles.errorText}>{validationErrors.password[0]}</span>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={loading}
-            >
-              <span>{loading ? 'Вход...' : 'Войти'}</span>
-            </button>
-          </form>
+            </>
+          )
         ) : (
-          <form className={styles.form} onSubmit={handleRegisterSubmit}>
-            <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="register-email">
-                Email
-              </label>
-              <input
-                id="register-email"
-                type="email"
-                name="email"
-                className={`${styles.input} ${validationErrors.email ? styles.error : ''}`}
-                placeholder="example@corstat.com"
-                value={registerData.email}
-                onChange={handleRegisterChange}
-                required
-                disabled={loading}
-              />
-              {validationErrors.email && (
-                <span className={styles.errorText}>{validationErrors.email[0]}</span>
-              )}
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="register-password">
-                Пароль
-              </label>
-              <input
-                id="register-password"
-                type="password"
-                name="password"
-                className={`${styles.input} ${validationErrors.password ? styles.error : ''}`}
-                placeholder="Введите пароль"
-                value={registerData.password}
-                onChange={handleRegisterChange}
-                required
-                disabled={loading}
-              />
-              {validationErrors.password && (
-                <span className={styles.errorText}>{validationErrors.password[0]}</span>
-              )}
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label} htmlFor="register-password-confirmation">
-                Повторите пароль
-              </label>
-              <input
-                id="register-password-confirmation"
-                type="password"
-                name="password_confirmation"
-                className={`${styles.input} ${validationErrors.password_confirmation ? styles.error : ''}`}
-                placeholder="Повторите пароль"
-                value={registerData.password_confirmation}
-                onChange={handleRegisterChange}
-                required
-                disabled={loading}
-              />
-              {validationErrors.password_confirmation && (
-                <span className={styles.errorText}>{validationErrors.password_confirmation[0]}</span>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={loading}
-            >
-              <span>{loading ? 'Регистрация...' : 'Зарегистрироваться'}</span>
-            </button>
-          </form>
+          <RegisterForm
+            registerData={registerData}
+            loading={loading}
+            validationErrors={validationErrors}
+            onSubmit={handleRegisterSubmit}
+            onChange={handleRegisterChange}
+          />
         )}
 
         {successMessage && (
-          <div className={styles.successMessage}>{successMessage}</div>
+          <SuccessMessage message={successMessage} />
         )}
 
         {errorMessage && (
-          <div className={styles.errorMessage}>{errorMessage}</div>
+          <ErrorMessage message={errorMessage} />
         )}
       </div>
     </div>

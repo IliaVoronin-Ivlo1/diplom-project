@@ -56,5 +56,6 @@ Route::middleware('auth:sanctum')->prefix('profile')->group(function () {
     Route::post('/request-password-reset', [ProfileController::class, 'requestPasswordReset']);
 });
 
+Route::post('/auth/forgot-password', [ProfileController::class, 'forgotPassword']);
 Route::post('/profile/reset-password', [ProfileController::class, 'resetPassword']);
 

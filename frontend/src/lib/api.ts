@@ -34,7 +34,13 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
+      const requestUrl = error.config?.url || '';
+      const isAuthRequest = requestUrl.includes('/auth/login') || 
+                           requestUrl.includes('/auth/register') ||
+                           requestUrl.includes('/auth/verify-email') ||
+                           requestUrl.includes('/forgot-password');
+      
+      if (!isAuthRequest && typeof window !== 'undefined') {
         localStorage.removeItem('auth_token');
         window.location.href = '/login';
       }

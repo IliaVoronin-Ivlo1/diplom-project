@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateNameRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Http\Requests\ForgotPasswordRequest;
 use App\Mail\ResetPasswordMail;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -74,6 +75,41 @@ class ProfileController extends Controller
 
             return response()->json([
                 'message' => 'Ошибка сервера при запросе смены пароля'
+            ], 500);
+        }
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        try {
+            $user = User::where('email', $request->email)->first();
+            
+            DB::table('password_reset_tokens')->where('email', $user->email)->delete();
+
+            $token = Str::random(32);
+            
+            DB::table('password_reset_tokens')->insert([
+                'email' => $user->email,
+                'token' => Hash::make($token),
+                'created_at' => now(),
+            ]);
+
+            $resetUrl = env('FRONTEND_URL', 'http://localhost:8080') . '/reset-password?token=' . $token . '&email=' . urlencode($user->email);
+
+            Mail::to($user->email)->send(new ResetPasswordMail($resetUrl, $user->email));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Письмо с инструкциями отправлено на ваш email'
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('ProfileController[forgotPassword]', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'message' => 'Ошибка сервера при запросе сброса пароля'
             ], 500);
         }
     }
