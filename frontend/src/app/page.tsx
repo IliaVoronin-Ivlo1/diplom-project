@@ -1,19 +1,41 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import authService from '@/services/auth.service';
+import MainHeader from '@/components/MainHeader/MainHeader';
+import ClusteringChart from '@/components/ClusteringChart/ClusteringChart';
+import MainBackground from '@/components/MainBackground/MainBackground';
+import styles from './page.module.css';
 
 export default function Home() {
   const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (authService.isAuthenticated()) {
-      router.push('/profile');
-    } else {
+    const authenticated = authService.isAuthenticated();
+    setIsAuthenticated(authenticated);
+    
+    if (!authenticated) {
       router.push('/login');
     }
   }, [router]);
 
-  return null;
+  if (isAuthenticated === null) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <div className={styles.container}>
+      <MainBackground />
+      <MainHeader />
+      <div className={styles.content}>
+        <ClusteringChart />
+      </div>
+    </div>
+  );
 }

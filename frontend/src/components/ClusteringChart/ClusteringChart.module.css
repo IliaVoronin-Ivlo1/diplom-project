@@ -1,0 +1,172 @@
+.chartContainer {
+  background: var(--secondary-dark);
+  border-radius: 12px;
+  box-shadow: 
+    var(--shadow-xl),
+    0 0 0 1px rgba(74, 158, 255, 0.1);
+  border: 1px solid var(--border-primary);
+  overflow: hidden;
+  position: relative;
+  animation: card-appear 0.6s ease;
+}
+
+@keyframes card-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chartContainer::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, var(--accent-blue), transparent, var(--accent-subtle));
+  border-radius: 12px;
+  z-index: -1;
+  opacity: 0.1;
+  filter: blur(20px);
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.chartHeader {
+  padding: 24px 40px 0;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.chartTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.chartSubtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 20px 0;
+}
+
+.chartContent {
+  padding: 40px;
+  min-height: 500px;
+  height: 500px;
+  position: relative;
+}
+
+.placeholder {
+  text-align: center;
+  opacity: 0.6;
+}
+
+.placeholderIcon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  color: var(--accent-blue);
+  opacity: 0.3;
+}
+
+.placeholderIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.placeholderText {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.placeholderSubtext {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.retryButton {
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-subtle) 100%);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.retryButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.35);
+}
+
+.chartLegend {
+  padding: 20px 40px;
+  border-top: 1px solid var(--border-primary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendColor {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border-primary);
+}
+
+.legendText {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .chartHeader {
+    padding: 20px 24px 0;
+  }
+
+  .chartContent {
+    padding: 30px 20px;
+    min-height: 400px;
+    height: 400px;
+  }
+
+  .chartLegend {
+    padding: 16px 24px;
+    gap: 12px;
+  }
+
+  .placeholderIcon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .placeholderText {
+    font-size: 16px;
+  }
+}
+

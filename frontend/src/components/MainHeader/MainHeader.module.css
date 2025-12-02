@@ -12,12 +12,6 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: all var(--transition-normal);
-}
-
-.logo:hover {
-  opacity: 0.8;
-  transform: translateX(-2px);
 }
 
 .logoIcon {
@@ -69,7 +63,7 @@
   color: var(--text-primary);
 }
 
-.logoutButton {
+.profileButton {
   width: 48px;
   height: 48px;
   background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-subtle) 100%);
@@ -85,7 +79,7 @@
   overflow: hidden;
 }
 
-.logoutButton::before {
+.profileButton::before {
   content: '';
   position: absolute;
   top: 0;
@@ -96,16 +90,16 @@
   transition: left 0.5s ease;
 }
 
-.logoutButton:hover::before {
+.profileButton:hover::before {
   left: 100%;
 }
 
-.logoutButton:hover {
+.profileButton:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(74, 158, 255, 0.35);
 }
 
-.logoutButton svg {
+.profileButton svg {
   width: 20px;
   height: 20px;
   color: #ffffff;
@@ -114,18 +108,8 @@
   z-index: 1;
 }
 
-.logoutButton:hover svg {
+.profileButton:hover svg {
   transform: scale(1.1);
-}
-
-@media (max-width: 768px) {
-  .header {
-    margin-bottom: 24px;
-  }
-
-  .logoText {
-    font-size: 20px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -142,7 +126,7 @@
     font-size: 18px;
   }
 
-  .logoutButton {
+  .profileButton {
     width: 40px;
     height: 40px;
   }

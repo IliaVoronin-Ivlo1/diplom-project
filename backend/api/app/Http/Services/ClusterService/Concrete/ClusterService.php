@@ -4,6 +4,8 @@ namespace App\Http\Services\ClusterService\Concrete;
 
 use App\Http\Services\ClusterService\Contract\ClusterServiceInterface;
 use App\Http\Services\ClusterService\Requests\ClusterRequest;
+use App\Models\SupplierCluster;
+use Illuminate\Support\Facades\Log;
 
 class ClusterService implements ClusterServiceInterface
 {
@@ -17,6 +19,26 @@ class ClusterService implements ClusterServiceInterface
     public function startClusterisationRequest(): array
     {
         return $this->clusterRequest->sendRequest();
+    }
+
+    public function getClustersData(): array
+    {
+        try {
+            $latestCluster = SupplierCluster::latest()->first();
+            
+            if (!$latestCluster) {
+                Log::info("ClusterService[getClustersData]", ['message' => 'No clusters found']);
+                return ['clusters' => []];
+            }
+            
+            $content = $latestCluster->content;
+            $clusters = $content['clusters'] ?? [];
+            
+            return ['clusters' => $clusters];
+        } catch (\Exception $e) {
+            Log::info("ClusterService[getClustersData]", ['error' => $e->getMessage()]);
+            return ['clusters' => []];
+        }
     }
 }
 

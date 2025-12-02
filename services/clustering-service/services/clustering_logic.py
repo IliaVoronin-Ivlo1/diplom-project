@@ -9,7 +9,6 @@ import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-from sklearn.metrics import silhouette_score
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +20,10 @@ class ClusteringService:
     def _get_suppliers_data(self):
         query = """
             SELECT 
-                product_distributor.id,
-                product_distributor.name,
+                COALESCE(MAX(product_distributor.remote_params->>'service'), MIN(product_distributor.name)) as service_id,
+                COALESCE(MAX(product_distributor.remote_params->>'service'), MIN(product_distributor.name)) as service_name,
+                MIN(product_distributor.id) as id,
+                STRING_AGG(DISTINCT product_distributor.name, ', ' ORDER BY product_distributor.name) as name,
                 COUNT(order_product.id) as orders_count,
                 COALESCE(SUM(order_product.total), 0) as total_revenue,
                 COALESCE(AVG(order_product.price), 0) as avg_price,
@@ -41,10 +42,9 @@ class ClusteringService:
                 COUNT(DISTINCT order_product.article) as unique_parts
             FROM product_distributor
             LEFT JOIN order_product ON product_distributor.id = order_product.distributor_id
-            WHERE product_distributor.status = 1
-            GROUP BY product_distributor.id, product_distributor.name
+            GROUP BY COALESCE(product_distributor.remote_params->>'service', product_distributor.name)
             HAVING COUNT(order_product.id) > 0
-            ORDER BY product_distributor.id
+            ORDER BY MIN(product_distributor.id)
         """
         
         cursor = self.db_connection.cursor()
@@ -75,7 +75,7 @@ class ClusteringService:
                 supplier['unique_brands'],
                 supplier['unique_parts']
             ])
-            supplier_ids.append(supplier['id'])
+            supplier_ids.append(supplier['service_id'])
         
         return np.array(features), supplier_ids
     
@@ -83,24 +83,37 @@ class ClusteringService:
         if max_clusters < 2:
             return 2
         
+        if max_clusters == 2:
+            return 2
+        
         inertias = []
-        silhouette_scores = []
         k_range = range(2, min(max_clusters + 1, len(features_scaled) + 1))
         
         for k in k_range:
             kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
             kmeans.fit(features_scaled)
             inertias.append(kmeans.inertia_)
-            if len(features_scaled) > k:
-                silhouette_scores.append(silhouette_score(features_scaled, kmeans.labels_))
-            else:
-                silhouette_scores.append(0)
         
-        if len(silhouette_scores) == 0:
+        if len(inertias) < 2:
             return 2
         
-        optimal_k = k_range[np.argmax(silhouette_scores)]
-        return optimal_k
+        inertias = np.array(inertias)
+        k_values = np.array(list(k_range))
+        
+        if len(inertias) >= 3:
+            rate_of_change = np.diff(inertias)
+            second_derivative = np.diff(rate_of_change)
+            
+            if len(second_derivative) > 0:
+                elbow_idx = np.argmax(second_derivative) + 1
+                optimal_k = k_values[elbow_idx]
+            else:
+                optimal_k = k_values[np.argmax(rate_of_change) + 1] if len(rate_of_change) > 0 else 2
+        else:
+            optimal_k = 2
+        
+        optimal_k = max(2, min(optimal_k, max_clusters))
+        return int(optimal_k)
     
     def _perform_clustering(self, features, supplier_ids, suppliers_data):
         scaler = StandardScaler()
@@ -116,8 +129,8 @@ class ClusteringService:
         features_2d = pca.fit_transform(features_scaled)
         
         clusters = {}
-        for idx, supplier_id in enumerate(supplier_ids):
-            cluster_id = int(cluster_labels[idx])
+        for idx, service_id in enumerate(supplier_ids):
+            cluster_id = int(cluster_labels[idx]) + 1
             if cluster_id not in clusters:
                 clusters[cluster_id] = {
                     'id': cluster_id,
@@ -125,11 +138,11 @@ class ClusteringService:
                     'coordinates': []
                 }
             
-            supplier_info = next((s for s in suppliers_data if s['id'] == supplier_id), None)
+            supplier_info = next((s for s in suppliers_data if s['service_id'] == service_id), None)
             if supplier_info:
                 clusters[cluster_id]['suppliers'].append({
-                    'id': supplier_id,
-                    'name': supplier_info['name'],
+                    'id': supplier_info['id'],
+                    'name': supplier_info['service_name'],
                     'x': float(features_2d[idx][0]),
                     'y': float(features_2d[idx][1])
                 })
@@ -168,16 +181,6 @@ class ClusteringService:
         
         return cluster_id
     
-    def _save_to_redis(self, clusters_data, metadata):
-        content = {
-            'clusters': clusters_data,
-            'metadata': metadata
-        }
-        
-        key = 'supplier_clusters:latest'
-        value = json.dumps(content)
-        self.redis_client.setex(key, 7200, value)
-    
     def cluster_suppliers(self):
         start_time = time.time()
         
@@ -205,7 +208,6 @@ class ClusteringService:
             }
             
             cluster_id = self._save_to_database(clusters, metadata)
-            self._save_to_redis(clusters, metadata)
             
             return {
                 'success': True,

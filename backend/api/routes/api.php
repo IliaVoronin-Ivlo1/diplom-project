@@ -23,3 +23,7 @@ Route::middleware('auth:sanctum')->prefix('profile')->group(function () {
 Route::post('/auth/forgot-password', [ProfileController::class, 'forgotPassword']);
 Route::post('/profile/reset-password', [ProfileController::class, 'resetPassword']);
 
+Route::middleware('auth:sanctum')->prefix('cluster')->group(function () {
+    Route::get('/get-clusters-data', [\App\Http\Controllers\ClusterController::class, 'getClustersData']);
+});
+
