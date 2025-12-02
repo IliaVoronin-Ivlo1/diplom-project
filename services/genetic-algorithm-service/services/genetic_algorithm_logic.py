@@ -56,6 +56,15 @@ class GeneticAlgorithmService:
         suppliers = []
         for row in rows:
             supplier = dict(zip(columns, row))
+            supplier['id'] = int(supplier['id'])
+            supplier['orders_count'] = int(supplier['orders_count'])
+            supplier['total_revenue'] = float(supplier['total_revenue'])
+            supplier['avg_price'] = float(supplier['avg_price'])
+            supplier['success_rate'] = float(supplier['success_rate'])
+            supplier['avg_delivery_time'] = float(supplier['avg_delivery_time'])
+            supplier['denial_rate'] = float(supplier['denial_rate'])
+            supplier['unique_brands'] = int(supplier['unique_brands'])
+            supplier['unique_parts'] = int(supplier['unique_parts'])
             suppliers.append(supplier)
         
         return suppliers
@@ -120,18 +129,31 @@ class GeneticAlgorithmService:
         return fitness,
     
     def _create_individual(self, suppliers):
+        if len(suppliers) == 0:
+            return [0]
         return [random.randint(0, len(suppliers) - 1)]
     
     def _mutate_individual(self, individual, suppliers):
+        if len(suppliers) == 0:
+            return individual,
         individual[0] = random.randint(0, len(suppliers) - 1)
         return individual,
     
     def _run_genetic_algorithm(self, suppliers):
-        if len(suppliers) < 2:
-            return suppliers[0] if suppliers else None
+        if len(suppliers) == 0:
+            return None
+        if len(suppliers) == 1:
+            return suppliers[0]
         
-        creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-        creator.create("Individual", list, fitness=creator.FitnessMax)
+        try:
+            creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+        except ValueError:
+            pass
+        
+        try:
+            creator.create("Individual", list, fitness=creator.FitnessMax)
+        except ValueError:
+            pass
         
         toolbox = base.Toolbox()
         toolbox.register("individual", tools.initIterate, creator.Individual, 
@@ -140,20 +162,28 @@ class GeneticAlgorithmService:
         toolbox.register("evaluate", self._fitness_function, suppliers=suppliers)
         toolbox.register("mate", tools.cxOnePoint)
         toolbox.register("mutate", self._mutate_individual, suppliers=suppliers)
-        toolbox.register("select", tools.selTournament, tournsize=3)
+        tournsize = min(3, len(suppliers))
+        if tournsize < 1:
+            tournsize = 1
+        toolbox.register("select", tools.selTournament, tournsize=tournsize)
         
-        population = toolbox.population(n=min(50, len(suppliers) * 2))
+        population_size = min(50, max(2, len(suppliers) * 2))
+        population = toolbox.population(n=population_size)
         
         ngen = 30
         cxpb = 0.5
         mutpb = 0.2
         
         for gen in range(ngen):
-            offspring = algorithms.varAnd(population, toolbox, cxpb, mutpb)
-            fits = toolbox.map(toolbox.evaluate, offspring)
-            for fit, ind in zip(fits, offspring):
-                ind.fitness.values = fit
-            population = toolbox.select(offspring, len(population))
+            try:
+                offspring = algorithms.varAnd(population, toolbox, cxpb, mutpb)
+                fits = toolbox.map(toolbox.evaluate, offspring)
+                for fit, ind in zip(fits, offspring):
+                    ind.fitness.values = fit
+                population = toolbox.select(offspring, len(population))
+            except Exception as e:
+                logger.error(f'GeneticAlgorithmService[_run_genetic_algorithm] generation {gen} error: {str(e)}')
+                break
         
         best_individual = tools.selBest(population, 1)[0]
         best_supplier_idx = best_individual[0]
@@ -176,27 +206,102 @@ class GeneticAlgorithmService:
             logger.error(f'GeneticAlgorithmService[_get_supplier_rating] error: {str(e)}')
         return None
     
-    def _save_to_database(self, result_data, metadata):
-        query = """
-            INSERT INTO genetic_algorithm_results (content, created_at, updated_at)
-            VALUES (%s, NOW(), NOW())
-            RETURNING id
-        """
-        
-        content = {
-            'results': result_data,
-            'metadata': metadata
-        }
-        
+    def _save_to_database(self, result_data, metadata, suppliers_data):
         cursor = self.db_connection.cursor()
-        cursor.execute(query, (json.dumps(content),))
-        result_id = cursor.fetchone()[0]
-        self.db_connection.commit()
-        cursor.close()
         
-        return result_id
+        try:
+            run_query = """
+                INSERT INTO genetic_algorithm_runs (fitness_threshold, execution_time, suppliers_count, filtered_suppliers_count, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, NOW(), NOW())
+                RETURNING id
+            """
+            cursor.execute(run_query, (
+                metadata['fitness_threshold'],
+                metadata['execution_time'],
+                metadata['suppliers_count'],
+                metadata.get('filtered_suppliers_count', 0)
+            ))
+            run_id = cursor.fetchone()[0]
+            
+            all_ranked = result_data.get('all_suppliers_ranking', [])
+            suppliers_with_combinations = result_data.get('suppliers_with_combinations', [])
+            
+            suppliers_with_combinations_ids = {s['id'] for s in suppliers_with_combinations}
+            
+            supplier_ranking_query = """
+                INSERT INTO genetic_algorithm_supplier_rankings 
+                (run_id, supplier_id, service_name, name, fitness_score, has_combinations, rank, 
+                 avg_price, success_rate, avg_delivery_time, denial_rate, orders_count, total_revenue, 
+                 created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                RETURNING id
+            """
+            
+            supplier_ranking_ids = {}
+            suppliers_data_dict = {s['id']: s for s in suppliers_data}
+            
+            for rank, supplier in enumerate(all_ranked, 1):
+                has_combinations = supplier['id'] in suppliers_with_combinations_ids
+                supplier_data = suppliers_data_dict.get(supplier['id'], {})
+                cursor.execute(supplier_ranking_query, (
+                    run_id,
+                    supplier['id'],
+                    supplier.get('service_name', ''),
+                    supplier.get('name', ''),
+                    supplier['fitness_score'],
+                    has_combinations,
+                    rank,
+                    float(supplier_data.get('avg_price', 0)),
+                    float(supplier_data.get('success_rate', 0)),
+                    float(supplier_data.get('avg_delivery_time', 0)),
+                    float(supplier_data.get('denial_rate', 0)),
+                    int(supplier_data.get('orders_count', 0)),
+                    float(supplier_data.get('total_revenue', 0))
+                ))
+                supplier_ranking_id = cursor.fetchone()[0]
+                supplier_ranking_ids[supplier['id']] = supplier_ranking_id
+            
+            article_brand_query = """
+                INSERT INTO genetic_algorithm_article_brand_rankings 
+                (supplier_ranking_id, article, brand, fitness_score, orders_count, success_rate, avg_price, avg_delivery_time, total_revenue, denial_rate, rank, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+            """
+            
+            for supplier in suppliers_with_combinations:
+                supplier_id = supplier['id']
+                if supplier_id not in supplier_ranking_ids:
+                    continue
+                
+                supplier_ranking_id = supplier_ranking_ids[supplier_id]
+                combinations = supplier.get('article_brand_combinations', [])
+                
+                for rank, combo in enumerate(combinations, 1):
+                    metrics = combo.get('metrics', {})
+                    cursor.execute(article_brand_query, (
+                        supplier_ranking_id,
+                        combo['article'],
+                        combo['brand'],
+                        combo['fitness_score'],
+                        metrics.get('orders_count', 0),
+                        metrics.get('success_rate', 0.0),
+                        metrics.get('avg_price', 0.0),
+                        metrics.get('avg_delivery_time', 0.0),
+                        metrics.get('total_revenue', 0.0),
+                        metrics.get('denial_rate', 0.0),
+                        rank
+                    ))
+            
+            self.db_connection.commit()
+            return run_id
+            
+        except Exception as e:
+            self.db_connection.rollback()
+            logger.error(f'GeneticAlgorithmService[_save_to_database] error: {str(e)}')
+            raise
+        finally:
+            cursor.close()
     
-    def _get_article_brand_data(self, supplier_id):
+    def _get_article_brand_data(self, supplier_id, service_name):
         query = """
             SELECT 
                 order_product.article,
@@ -216,32 +321,60 @@ class GeneticAlgorithmService:
                     0
                 ) as denial_rate
             FROM order_product
-            WHERE order_product.distributor_id = %s
+            JOIN product_distributor ON order_product.distributor_id = product_distributor.id
+            WHERE COALESCE(product_distributor.remote_params->>'service', product_distributor.name) = %s
             GROUP BY order_product.article, order_product.brand
             HAVING COUNT(order_product.id) > 0
             ORDER BY COUNT(order_product.id) DESC
+            LIMIT 10000
         """
         
         cursor = self.db_connection.cursor()
-        cursor.execute(query, (supplier_id,))
+        cursor.execute(query, (service_name,))
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
         cursor.close()
         
+        logger.info(f'GeneticAlgorithmService[_get_article_brand_data] service_name={service_name}, found {len(rows)} combinations')
+        
         combinations = []
         for row in rows:
             combination = dict(zip(columns, row))
+            combination['orders_count'] = int(combination['orders_count'])
+            combination['total_revenue'] = float(combination['total_revenue'])
+            combination['avg_price'] = float(combination['avg_price'])
+            combination['success_rate'] = float(combination['success_rate'])
+            combination['avg_delivery_time'] = float(combination['avg_delivery_time'])
+            combination['denial_rate'] = float(combination['denial_rate'])
             combinations.append(combination)
         
         return combinations
     
     def _analyze_supplier_combinations(self, supplier, fitness_threshold=0.5):
-        article_brand_data = self._get_article_brand_data(supplier['id'])
+        article_brand_data = self._get_article_brand_data(supplier['id'], supplier['service_name'])
+        
+        logger.info(f'GeneticAlgorithmService[_analyze_supplier_combinations] supplier_id={supplier["id"]}, service_name={supplier["service_name"]}, combinations_count={len(article_brand_data)}')
         
         if len(article_brand_data) == 0:
             return []
         
         if len(article_brand_data) == 1:
+            combination = article_brand_data[0]
+            return [{
+                'article': combination['article'],
+                'brand': combination['brand'],
+                'fitness_score': 1.0,
+                'metrics': {
+                    'avg_price': float(combination['avg_price']),
+                    'success_rate': float(combination['success_rate']),
+                    'avg_delivery_time': float(combination['avg_delivery_time']),
+                    'denial_rate': float(combination['denial_rate']),
+                    'orders_count': int(combination['orders_count']),
+                    'total_revenue': float(combination['total_revenue'])
+                }
+            }]
+        
+        if len(article_brand_data) < 2:
             combination = article_brand_data[0]
             return [{
                 'article': combination['article'],
@@ -325,7 +458,15 @@ class GeneticAlgorithmService:
                             'id': best_supplier['id'],
                             'service_name': best_supplier['service_name'],
                             'name': best_supplier['name'],
-                            'fitness_score': 1.0
+                            'fitness_score': 1.0,
+                            'metrics': {
+                                'avg_price': float(best_supplier['avg_price']),
+                                'success_rate': float(best_supplier['success_rate']),
+                                'avg_delivery_time': float(best_supplier['avg_delivery_time']),
+                                'denial_rate': float(best_supplier['denial_rate']),
+                                'orders_count': int(best_supplier['orders_count']),
+                                'total_revenue': float(best_supplier['total_revenue'])
+                            }
                         }
                     ],
                     'execution_time': round(time.time() - start_time, 2)
@@ -339,7 +480,7 @@ class GeneticAlgorithmService:
                     'suppliers_count': 1
                 }
                 
-                self._save_to_database(result_data, metadata)
+                self._save_to_database(result_data, metadata, suppliers_data)
                 
                 return result_data
             
@@ -361,7 +502,15 @@ class GeneticAlgorithmService:
                     'id': supplier['id'],
                     'service_name': supplier['service_name'],
                     'name': supplier['name'],
-                    'fitness_score': float(fitness)
+                    'fitness_score': float(fitness),
+                    'metrics': {
+                        'avg_price': float(supplier['avg_price']),
+                        'success_rate': float(supplier['success_rate']),
+                        'avg_delivery_time': float(supplier['avg_delivery_time']),
+                        'denial_rate': float(supplier['denial_rate']),
+                        'orders_count': int(supplier['orders_count']),
+                        'total_revenue': float(supplier['total_revenue'])
+                    }
                 })
             
             all_ranked.sort(key=lambda x: x['fitness_score'], reverse=True)
@@ -443,7 +592,7 @@ class GeneticAlgorithmService:
                 'filtered_suppliers_count': len(filtered_suppliers)
             }
             
-            self._save_to_database(result_data, metadata)
+            self._save_to_database(result_data, metadata, suppliers_data)
             
             return result_data
             

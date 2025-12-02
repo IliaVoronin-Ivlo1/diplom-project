@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClusterController;
+use App\Http\Controllers\GeneticAlgorithmController;
 use App\Http\Controllers\ProfileController;
 
 Route::prefix('auth')->group(function () {
@@ -24,6 +26,11 @@ Route::post('/auth/forgot-password', [ProfileController::class, 'forgotPassword'
 Route::post('/profile/reset-password', [ProfileController::class, 'resetPassword']);
 
 Route::middleware('auth:sanctum')->prefix('cluster')->group(function () {
-    Route::get('/get-clusters-data', [\App\Http\Controllers\ClusterController::class, 'getClustersData']);
+    Route::get('/get-clusters-data', [ClusterController::class, 'getClustersData']);
+});
+
+Route::middleware('auth:sanctum')->prefix('genetic-algorithm')->group(function () {
+    Route::get('/get-results-data', [GeneticAlgorithmController::class, 'getResultsData']);
+    Route::get('/get-supplier-combinations/{supplierId}', [GeneticAlgorithmController::class, 'getSupplierCombinations']);
 });
 
