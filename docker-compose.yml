@@ -53,6 +53,7 @@ services:
       PARTS_MATCHING_SERVICE_URL: http://diplom_parts_matching_service:8002
       PRICE_ANALYSIS_SERVICE_URL: http://diplom_price_analysis_service:8003
       QUALITY_CONTROL_SERVICE_URL: http://diplom_quality_control_service:8004
+      CLUSTERING_SERVICE_URL: http://diplom_clustering_service:8005
       MAIL_MAILER: smtp
       MAIL_HOST: smtp.gmail.com
       MAIL_PORT: 587
@@ -199,6 +200,34 @@ services:
       - ./services/quality-control-service:/app
     ports:
       - "8004:8004"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - diplom_network
+    restart: unless-stopped
+
+  clustering-service:
+    build:
+      context: ./services/clustering-service
+      dockerfile: Dockerfile
+    container_name: diplom_clustering_service
+    working_dir: /app
+    environment:
+      SERVICE_NAME: clustering-service
+      SERVICE_PORT: 8005
+      REDIS_HOST: redis
+      REDIS_PASSWORD: redis_pass_2024
+      REDIS_PORT: 6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: Corstat
+      DB_USER: Corstat
+      DB_PASSWORD: Rhtyltkm1#
+    volumes:
+      - ./services/clustering-service:/app
+    ports:
+      - "8005:8005"
     depends_on:
       - postgres
       - redis
