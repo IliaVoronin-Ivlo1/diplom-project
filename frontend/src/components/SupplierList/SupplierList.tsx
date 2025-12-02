@@ -61,7 +61,7 @@ export default function SupplierList({
           {suppliers.map((supplier, index) => (
             <div
               key={supplier.id}
-              className={`${styles.supplierItem} ${selectedSupplierId === supplier.id ? styles.selected : ''}`}
+              className={`${styles.supplierItem} ${selectedSupplierId === supplier.id ? styles.selected : ''} ${index === 0 ? styles.best : ''}`}
               onClick={() => onSupplierSelect(supplier)}
             >
               <div className={styles.rank}>

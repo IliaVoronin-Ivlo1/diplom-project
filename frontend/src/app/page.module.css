@@ -75,14 +75,21 @@
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   width: 100%;
+  align-items: stretch;
 }
 
 .supplierListWrapper {
-  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  min-height: 1100px;
+  overflow: hidden;
 }
 
 .supplierChartWrapper {
-  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  min-height: 1100px;
+  overflow: hidden;
 }
 
 @media (max-width: 1024px) {
@@ -102,7 +109,7 @@
 
   .supplierListWrapper,
   .supplierChartWrapper {
-    min-height: 500px;
+    min-height: 0;
   }
 }
 

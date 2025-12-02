@@ -6,7 +6,7 @@ import styles from './SupplierCombinations.module.css';
 interface SupplierCombinationsProps {
   combinations: ArticleBrandCombination[];
   supplierName: string;
-  onClose: () => void;
+  onClose?: () => void;
   loading?: boolean;
 }
 
@@ -17,11 +17,13 @@ export default function SupplierCombinations({ combinations, supplierName, onClo
         <div className={styles.header}>
           <h3 className={styles.title}>Топ артикул-брендов</h3>
           <p className={styles.subtitle}>{supplierName}</p>
-          <button className={styles.closeButton} onClick={onClose}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
+          {onClose && (
+            <button className={styles.closeButton} onClick={onClose}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          )}
         </div>
         <div className={styles.content}>
           <div className={styles.placeholder}>
@@ -38,11 +40,13 @@ export default function SupplierCombinations({ combinations, supplierName, onClo
         <div className={styles.header}>
           <h3 className={styles.title}>Топ артикул-брендов</h3>
           <p className={styles.subtitle}>{supplierName}</p>
-          <button className={styles.closeButton} onClick={onClose}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
+          {onClose && (
+            <button className={styles.closeButton} onClick={onClose}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          )}
         </div>
         <div className={styles.content}>
           <div className={styles.placeholder}>
@@ -58,11 +62,13 @@ export default function SupplierCombinations({ combinations, supplierName, onClo
       <div className={styles.header}>
         <h3 className={styles.title}>Топ артикул-брендов</h3>
         <p className={styles.subtitle}>{supplierName}</p>
-        <button className={styles.closeButton} onClick={onClose}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </button>
+        {onClose && (
+          <button className={styles.closeButton} onClick={onClose}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        )}
       </div>
       <div className={styles.content}>
         <div className={styles.list}>

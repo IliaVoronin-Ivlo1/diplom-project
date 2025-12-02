@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import authService from '@/services/auth.service';
 import geneticAlgorithmService, { Supplier } from '@/services/genetic-algorithm.service';
 import MainHeader from '@/components/MainHeader/MainHeader';
 import ClusteringChart from '@/components/ClusteringChart/ClusteringChart';
 import SupplierList from '@/components/SupplierList/SupplierList';
-import SupplierChart from '@/components/SupplierChart/SupplierChart';
 import SupplierCombinations from '@/components/SupplierCombinations/SupplierCombinations';
 import MainBackground from '@/components/MainBackground/MainBackground';
 import styles from './page.module.css';
@@ -20,6 +19,8 @@ export default function Home() {
   const [selectedSupplierCombinations, setSelectedSupplierCombinations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingCombinations, setLoadingCombinations] = useState(false);
+  const supplierListRef = useRef<HTMLDivElement>(null);
+  const supplierChartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const authenticated = authService.isAuthenticated();
@@ -32,6 +33,46 @@ export default function Home() {
     }
   }, [router]);
 
+  useEffect(() => {
+    const syncHeights = () => {
+      if (supplierListRef.current && supplierChartRef.current) {
+        const listHeight = supplierListRef.current.scrollHeight;
+        const chartHeight = supplierChartRef.current.scrollHeight;
+        const minHeight = Math.max(1100, Math.min(listHeight, chartHeight));
+        
+        if (minHeight > 0) {
+          supplierListRef.current.style.height = `${minHeight}px`;
+          supplierChartRef.current.style.height = `${minHeight}px`;
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(syncHeights, 100);
+    const resizeTimeoutId = setTimeout(syncHeights, 500);
+    
+    let resizeObserver: ResizeObserver | null = null;
+    
+    if (supplierListRef.current && supplierChartRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        setTimeout(syncHeights, 50);
+      });
+      
+      resizeObserver.observe(supplierListRef.current);
+      resizeObserver.observe(supplierChartRef.current);
+    }
+    
+    window.addEventListener('resize', syncHeights);
+    
+    return () => {
+      window.removeEventListener('resize', syncHeights);
+      clearTimeout(timeoutId);
+      clearTimeout(resizeTimeoutId);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [suppliers, selectedSupplier, selectedSupplierCombinations, loading, loadingCombinations]);
+
   const loadGeneticAlgorithmData = async () => {
     try {
       setLoading(true);
@@ -39,6 +80,11 @@ export default function Home() {
       if (data.results) {
         if (data.results.all_suppliers_ranking) {
           setSuppliers(data.results.all_suppliers_ranking);
+          if (data.results.all_suppliers_ranking.length > 0) {
+            const bestSupplier = data.results.all_suppliers_ranking[0];
+            setSelectedSupplier(bestSupplier);
+            await loadSupplierCombinations(bestSupplier.id);
+          }
         }
       }
     } catch (err: any) {
@@ -89,7 +135,7 @@ export default function Home() {
           <ClusteringChart />
         </div>
         <div className={styles.geneticSection}>
-          <div className={styles.supplierListWrapper}>
+          <div className={styles.supplierListWrapper} ref={supplierListRef}>
             <SupplierList 
               suppliers={suppliers}
               selectedSupplierId={selectedSupplier?.id || null}
@@ -97,23 +143,12 @@ export default function Home() {
               loading={loading}
             />
           </div>
-          <div className={styles.supplierChartWrapper}>
-            {selectedSupplier ? (
+          <div className={styles.supplierChartWrapper} ref={supplierChartRef}>
+            {selectedSupplier && (
               <SupplierCombinations
                 combinations={selectedSupplierCombinations}
                 supplierName={selectedSupplier.service_name || selectedSupplier.name}
-                onClose={() => {
-                  setSelectedSupplier(null);
-                  setSelectedSupplierCombinations([]);
-                }}
                 loading={loadingCombinations}
-              />
-            ) : (
-              <SupplierChart 
-                suppliers={suppliers}
-                selectedSupplierId={null}
-                onSupplierSelect={handleSupplierSelect}
-                loading={loading}
               />
             )}
           </div>
