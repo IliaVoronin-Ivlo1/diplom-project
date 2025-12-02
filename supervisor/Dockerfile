@@ -13,5 +13,9 @@ RUN mkdir -p /var/log/supervisor /etc/supervisor/conf.d
 
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["supervisord"]
 

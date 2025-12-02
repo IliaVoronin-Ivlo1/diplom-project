@@ -259,12 +259,26 @@ services:
       context: ./supervisor
       dockerfile: Dockerfile
     container_name: diplom_supervisor
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: Corstat
+      DB_USERNAME: Corstat
+      DB_PASSWORD: Rhtyltkm1#
+      REDIS_HOST: redis
+      REDIS_PASSWORD: redis_pass_2024
+      REDIS_PORT: 6379
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
     volumes:
       - ./supervisor/conf.d:/etc/supervisor/conf.d
       - ./supervisor/logs:/var/log/supervisor
       - ./backend/api:/var/www/backend
     depends_on:
       - backend
+      - postgres
       - redis
     networks:
       - diplom_network

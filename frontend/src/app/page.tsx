@@ -2,40 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { wsClient } from '@/lib/websocket';
 import apiClient from '@/lib/api';
 import authService from '@/services/auth.service';
 
 export default function Home() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
   const [apiStatus, setApiStatus] = useState<string>('проверка');
   const [backendResponse, setBackendResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   useEffect(() => {
-    wsClient.connect();
-
-    wsClient.on('connect', () => {
-      setIsConnected(true);
-    });
-
-    wsClient.on('disconnect', () => {
-      setIsConnected(false);
-    });
-
-    wsClient.on('message', (data: any) => {
-      setMessages((prev) => [...prev, data]);
-    });
-
     checkApiHealth();
-
-    return () => {
-      wsClient.disconnect();
-    };
   }, []);
 
   const checkApiHealth = async () => {
@@ -45,10 +24,6 @@ export default function Home() {
     } catch (error) {
       setApiStatus('недоступен');
     }
-  };
-
-  const sendTestMessage = () => {
-    wsClient.emit('test', { message: 'Тестовое сообщение' });
   };
 
   const testBackendRequest = async () => {
@@ -90,9 +65,6 @@ export default function Home() {
       
       <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
         <h2 style={{ marginTop: 0 }}>Статус подключений</h2>
-        <p>WebSocket: <strong style={{ color: isConnected ? 'green' : 'red' }}>
-          {isConnected ? 'подключен' : 'отключен'}
-        </strong></p>
         <p>Backend API: <strong style={{ color: apiStatus === 'healthy' ? 'green' : 'red' }}>
           {apiStatus}
         </strong></p>
@@ -157,51 +129,6 @@ export default function Home() {
         )}
       </div>
 
-      <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
-        <h2 style={{ marginTop: 0 }}>WebSocket тестирование</h2>
-        <button 
-          onClick={sendTestMessage}
-          disabled={!isConnected}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: isConnected ? '#007bff' : '#ccc',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isConnected ? 'pointer' : 'not-allowed'
-          }}
-        >
-          Отправить тестовое сообщение
-        </button>
-      </div>
-
-      <div style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
-        <h2 style={{ marginTop: 0 }}>Полученные сообщения</h2>
-        <div style={{ 
-          border: '1px solid #ddd', 
-          borderRadius: '4px', 
-          padding: '10px',
-          maxHeight: '300px',
-          overflowY: 'auto',
-          backgroundColor: '#fafafa'
-        }}>
-          {messages.length === 0 ? (
-            <p style={{ color: '#999' }}>Нет сообщений</p>
-          ) : (
-            messages.map((msg, index) => (
-              <div key={index} style={{ 
-                padding: '8px', 
-                borderBottom: '1px solid #eee',
-                marginBottom: '5px',
-                backgroundColor: '#fff',
-                borderRadius: '4px'
-              }}>
-                {JSON.stringify(msg)}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
     </div>
   );
 }
