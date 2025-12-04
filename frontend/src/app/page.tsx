@@ -1,208 +1,159 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { wsClient } from '@/lib/websocket';
-import apiClient from '@/lib/api';
+import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import authService from '@/services/auth.service';
+import geneticAlgorithmService, { Supplier } from '@/services/genetic-algorithm.service';
+import MainHeader from '@/components/MainHeader/MainHeader';
+import ClusteringChart from '@/components/ClusteringChart/ClusteringChart';
+import SupplierList from '@/components/SupplierList/SupplierList';
+import SupplierCombinations from '@/components/SupplierCombinations/SupplierCombinations';
+import MainBackground from '@/components/MainBackground/MainBackground';
+import styles from './page.module.css';
 
 export default function Home() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [apiStatus, setApiStatus] = useState<string>('проверка');
-  const [backendResponse, setBackendResponse] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+  const [selectedSupplierCombinations, setSelectedSupplierCombinations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingCombinations, setLoadingCombinations] = useState(false);
+  const supplierListRef = useRef<HTMLDivElement>(null);
+  const supplierChartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    wsClient.connect();
+    const authenticated = authService.isAuthenticated();
+    setIsAuthenticated(authenticated);
+    
+    if (!authenticated) {
+      router.push('/login');
+    } else {
+      loadGeneticAlgorithmData();
+    }
+  }, [router]);
 
-    wsClient.on('connect', () => {
-      setIsConnected(true);
-    });
-
-    wsClient.on('disconnect', () => {
-      setIsConnected(false);
-    });
-
-    wsClient.on('message', (data: any) => {
-      setMessages((prev) => [...prev, data]);
-    });
-
-    checkApiHealth();
-
-    return () => {
-      wsClient.disconnect();
+  useEffect(() => {
+    const syncHeights = () => {
+      if (supplierListRef.current && supplierChartRef.current) {
+        const listHeight = supplierListRef.current.scrollHeight;
+        const chartHeight = supplierChartRef.current.scrollHeight;
+        const minHeight = Math.max(1100, Math.min(listHeight, chartHeight));
+        
+        if (minHeight > 0) {
+          supplierListRef.current.style.height = `${minHeight}px`;
+          supplierChartRef.current.style.height = `${minHeight}px`;
+        }
+      }
     };
-  }, []);
 
-  const checkApiHealth = async () => {
-    try {
-      const response = await apiClient.get('/health');
-      setApiStatus(response.data.status);
-    } catch (error) {
-      setApiStatus('недоступен');
-    }
-  };
-
-  const sendTestMessage = () => {
-    wsClient.emit('test', { message: 'Тестовое сообщение' });
-  };
-
-  const testBackendRequest = async () => {
-    setLoading(true);
-    try {
-      const response = await apiClient.get('/test');
-      setBackendResponse(response.data);
-    } catch (error: any) {
-      setBackendResponse({ 
-        error: 'Ошибка запроса', 
-        details: error.message 
+    const timeoutId = setTimeout(syncHeights, 100);
+    const resizeTimeoutId = setTimeout(syncHeights, 500);
+    
+    let resizeObserver: ResizeObserver | null = null;
+    
+    if (supplierListRef.current && supplierChartRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        setTimeout(syncHeights, 50);
       });
+      
+      resizeObserver.observe(supplierListRef.current);
+      resizeObserver.observe(supplierChartRef.current);
+    }
+    
+    window.addEventListener('resize', syncHeights);
+    
+    return () => {
+      window.removeEventListener('resize', syncHeights);
+      clearTimeout(timeoutId);
+      clearTimeout(resizeTimeoutId);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [suppliers, selectedSupplier, selectedSupplierCombinations, loading, loadingCombinations]);
+
+  const loadGeneticAlgorithmData = async () => {
+    try {
+      setLoading(true);
+      const data = await geneticAlgorithmService.getResultsData();
+      if (data.results) {
+        if (data.results.all_suppliers_ranking) {
+          setSuppliers(data.results.all_suppliers_ranking);
+          if (data.results.all_suppliers_ranking.length > 0) {
+            const bestSupplier = data.results.all_suppliers_ranking[0];
+            setSelectedSupplier(bestSupplier);
+            await loadSupplierCombinations(bestSupplier.id);
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('Error loading genetic algorithm data:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const testBackendPost = async () => {
-    setLoading(true);
+  const loadSupplierCombinations = async (supplierId: number) => {
     try {
-      const response = await apiClient.post('/test', {
-        test_field: 'Тестовые данные с фронтенда',
-        timestamp: new Date().toISOString()
-      });
-      setBackendResponse(response.data);
-    } catch (error: any) {
-      setBackendResponse({ 
-        error: 'Ошибка запроса', 
-        details: error.message 
-      });
+      setLoadingCombinations(true);
+      const data = await geneticAlgorithmService.getSupplierCombinations(supplierId);
+      if (data.combinations) {
+        setSelectedSupplierCombinations(data.combinations);
+      } else {
+        setSelectedSupplierCombinations([]);
+      }
+    } catch (err: any) {
+      console.error('Error loading supplier combinations:', err);
+      setSelectedSupplierCombinations([]);
     } finally {
-      setLoading(false);
+      setLoadingCombinations(false);
     }
   };
+
+  const handleSupplierSelect = async (supplier: Supplier) => {
+    setSelectedSupplier(supplier);
+    setSelectedSupplierCombinations([]);
+    await loadSupplierCombinations(supplier.id);
+  };
+
+
+  if (isAuthenticated === null) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ color: '#333' }}>Diplom Project - Corstat</h1>
-      
-      <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-        <h2 style={{ marginTop: 0 }}>Статус подключений</h2>
-        <p>WebSocket: <strong style={{ color: isConnected ? 'green' : 'red' }}>
-          {isConnected ? 'подключен' : 'отключен'}
-        </strong></p>
-        <p>Backend API: <strong style={{ color: apiStatus === 'healthy' ? 'green' : 'red' }}>
-          {apiStatus}
-        </strong></p>
-      </div>
-
-      <div style={{ marginBottom: '30px', padding: '15px', backgroundColor: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
-        <h2 style={{ marginTop: 0 }}>Тестирование Backend</h2>
-        
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-          <button 
-            onClick={testBackendRequest}
-            disabled={loading}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.6 : 1
-            }}
-          >
-            {loading ? 'Загрузка...' : 'GET запрос к Backend'}
-          </button>
-
-          <button 
-            onClick={testBackendPost}
-            disabled={loading}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#17a2b8',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.6 : 1
-            }}
-          >
-            {loading ? 'Загрузка...' : 'POST запрос к Backend'}
-          </button>
+    <div className={styles.container}>
+      <MainBackground />
+      <MainHeader />
+      <div className={styles.content}>
+        <div className={styles.clusteringSection}>
+          <ClusteringChart />
         </div>
-
-        {backendResponse && (
-          <div style={{ 
-            padding: '15px', 
-            backgroundColor: '#f8f9fa', 
-            border: '1px solid #dee2e6',
-            borderRadius: '4px',
-            marginTop: '15px'
-          }}>
-            <h3 style={{ marginTop: 0, color: '#333' }}>Ответ от Backend:</h3>
-            <pre style={{ 
-              backgroundColor: '#fff',
-              padding: '10px',
-              borderRadius: '4px',
-              overflow: 'auto',
-              fontSize: '14px'
-            }}>
-              {JSON.stringify(backendResponse, null, 2)}
-            </pre>
+        <div className={styles.geneticSection}>
+          <div className={styles.supplierListWrapper} ref={supplierListRef}>
+            <SupplierList 
+              suppliers={suppliers}
+              selectedSupplierId={selectedSupplier?.id || null}
+              onSupplierSelect={handleSupplierSelect}
+              loading={loading}
+            />
           </div>
-        )}
-      </div>
-
-      <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
-        <h2 style={{ marginTop: 0 }}>WebSocket тестирование</h2>
-        <button 
-          onClick={sendTestMessage}
-          disabled={!isConnected}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: isConnected ? '#007bff' : '#ccc',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isConnected ? 'pointer' : 'not-allowed'
-          }}
-        >
-          Отправить тестовое сообщение
-        </button>
-      </div>
-
-      <div style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
-        <h2 style={{ marginTop: 0 }}>Полученные сообщения</h2>
-        <div style={{ 
-          border: '1px solid #ddd', 
-          borderRadius: '4px', 
-          padding: '10px',
-          maxHeight: '300px',
-          overflowY: 'auto',
-          backgroundColor: '#fafafa'
-        }}>
-          {messages.length === 0 ? (
-            <p style={{ color: '#999' }}>Нет сообщений</p>
-          ) : (
-            messages.map((msg, index) => (
-              <div key={index} style={{ 
-                padding: '8px', 
-                borderBottom: '1px solid #eee',
-                marginBottom: '5px',
-                backgroundColor: '#fff',
-                borderRadius: '4px'
-              }}>
-                {JSON.stringify(msg)}
-              </div>
-            ))
-          )}
+          <div className={styles.supplierChartWrapper} ref={supplierChartRef}>
+            {selectedSupplier && (
+              <SupplierCombinations
+                combinations={selectedSupplierCombinations}
+                supplierName={selectedSupplier.service_name || selectedSupplier.name}
+                loading={loadingCombinations}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

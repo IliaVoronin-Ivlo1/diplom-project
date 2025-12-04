@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import styles from './ProfileHeader.module.css';
 
 interface ProfileHeaderProps {
@@ -5,9 +8,15 @@ interface ProfileHeaderProps {
 }
 
 export default function ProfileHeader({ onLogout }: ProfileHeaderProps) {
+  const router = useRouter();
+
+  const handleLogoClick = () => {
+    router.push('/');
+  };
+
   return (
     <div className={styles.header}>
-      <div className={styles.logo}>
+      <div className={styles.logo} onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
         <div className={styles.logoIcon}></div>
         <div className={styles.logoText}>Corstat</div>
       </div>

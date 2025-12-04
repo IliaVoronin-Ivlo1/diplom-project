@@ -53,6 +53,8 @@ services:
       PARTS_MATCHING_SERVICE_URL: http://diplom_parts_matching_service:8002
       PRICE_ANALYSIS_SERVICE_URL: http://diplom_price_analysis_service:8003
       QUALITY_CONTROL_SERVICE_URL: http://diplom_quality_control_service:8004
+      CLUSTERING_SERVICE_URL: http://diplom_clustering_service:8005
+      GENETIC_ALGORITHM_SERVICE_URL: http://diplom_genetic_algorithm_service:8006
       MAIL_MAILER: smtp
       MAIL_HOST: smtp.gmail.com
       MAIL_PORT: 587
@@ -206,6 +208,64 @@ services:
       - diplom_network
     restart: unless-stopped
 
+  clustering-service:
+    build:
+      context: ./services/clustering-service
+      dockerfile: Dockerfile
+    container_name: diplom_clustering_service
+    working_dir: /app
+    environment:
+      SERVICE_NAME: clustering-service
+      SERVICE_PORT: 8005
+      REDIS_HOST: redis
+      REDIS_PASSWORD: redis_pass_2024
+      REDIS_PORT: 6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: Corstat
+      DB_USER: Corstat
+      DB_PASSWORD: Rhtyltkm1#
+    volumes:
+      - ./services/clustering-service:/app
+    ports:
+      - "8005:8005"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - diplom_network
+    restart: unless-stopped
+
+  genetic-algorithm-service:
+    build:
+      context: ./services/genetic-algorithm-service
+      dockerfile: Dockerfile
+    container_name: diplom_genetic_algorithm_service
+    working_dir: /app
+    environment:
+      SERVICE_NAME: genetic-algorithm-service
+      SERVICE_PORT: 8006
+      REDIS_HOST: redis
+      REDIS_PASSWORD: redis_pass_2024
+      REDIS_PORT: 6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: Corstat
+      DB_USER: Corstat
+      DB_PASSWORD: Rhtyltkm1#
+      SUPPLIER_RATING_SERVICE_URL: http://diplom_supplier_rating_service:8001
+    volumes:
+      - ./services/genetic-algorithm-service:/app
+    ports:
+      - "8006:8006"
+    depends_on:
+      - postgres
+      - redis
+      - supplier-rating-service
+    networks:
+      - diplom_network
+    restart: unless-stopped
+
   nginx:
     build:
       context: ./nginx
@@ -230,12 +290,26 @@ services:
       context: ./supervisor
       dockerfile: Dockerfile
     container_name: diplom_supervisor
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: Corstat
+      DB_USERNAME: Corstat
+      DB_PASSWORD: Rhtyltkm1#
+      REDIS_HOST: redis
+      REDIS_PASSWORD: redis_pass_2024
+      REDIS_PORT: 6379
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
     volumes:
       - ./supervisor/conf.d:/etc/supervisor/conf.d
       - ./supervisor/logs:/var/log/supervisor
       - ./backend/api:/var/www/backend
     depends_on:
       - backend
+      - postgres
       - redis
     networks:
       - diplom_network
