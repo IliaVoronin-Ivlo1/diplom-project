@@ -1,0 +1,262 @@
+.cardsContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--secondary-dark);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, var(--accent-blue), transparent, var(--accent-subtle));
+  border-radius: 16px;
+  z-index: -1;
+  opacity: 0;
+  filter: blur(20px);
+  transition: opacity var(--transition-normal);
+}
+
+.card:hover::before {
+  opacity: 0.2;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--accent-blue);
+}
+
+.card.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.card.disabled:hover {
+  transform: none;
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-primary);
+}
+
+.imageWrapper {
+  width: 100%;
+  height: 250px;
+  position: relative;
+  overflow: hidden;
+  background: var(--tertiary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svgLoader {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.svgContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svgContainer svg {
+  width: 100%;
+  height: 100%;
+  transition: transform var(--transition-slow);
+  object-fit: cover;
+}
+
+.card:hover .svgContainer svg {
+  transform: scale(1.02);
+}
+
+.card.disabled:hover .svgContainer svg {
+  transform: none;
+}
+
+.card .svgContainer svg g[id="bars"] g rect:first-child {
+  transition: filter 0.5s ease-in-out;
+  filter: brightness(0.85);
+}
+
+.card:hover .svgContainer svg g[id="bars"] g:nth-child(1) rect:first-child {
+  animation: barGlow 2.5s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.card:hover .svgContainer svg g[id="bars"] g:nth-child(2) rect:first-child {
+  animation: barGlow 2.5s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+.card:hover .svgContainer svg g[id="bars"] g:nth-child(3) rect:first-child {
+  animation: barGlow 2.5s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+.card:hover .svgContainer svg g[id="bars"] g:nth-child(4) rect:first-child {
+  animation: barGlow 2.5s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+.card:hover .svgContainer svg g[id="bars"] g:nth-child(5) rect:first-child {
+  animation: barGlow 2.5s ease-in-out infinite;
+  animation-delay: 1.6s;
+}
+
+.card:hover .svgContainer svg g[id="bars"] g:nth-child(6) rect:first-child {
+  animation: barGlow 2.5s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.card .svgContainer svg g[id*="cluster"] circle {
+  transition: opacity 1s ease-in-out, filter 1s ease-in-out;
+  opacity: 0.7;
+  filter: brightness(0.8);
+}
+
+.card:hover .svgContainer svg g[id="cluster1"] circle {
+  animation: clusterGlow 2.8s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.card:hover .svgContainer svg g[id="cluster2"] circle {
+  animation: clusterGlow 3.2s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.card:hover .svgContainer svg g[id="cluster3"] circle {
+  animation: clusterGlow 2.5s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.card:hover .svgContainer svg g[id="cluster4"] circle {
+  animation: clusterGlow 3.5s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+.card:hover .svgContainer svg g[id="cluster5"] circle {
+  animation: clusterGlow 2.9s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+.card:hover .svgContainer svg g[id="cluster6"] circle {
+  animation: clusterGlow 3.1s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+.card:hover .svgContainer svg g[id="cluster7"] circle {
+  animation: clusterGlow 2.7s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+
+.card:hover .svgContainer svg text {
+  animation: textGlow 0.8s ease-in-out;
+  transition: fill 0.3s ease;
+}
+
+.card:hover .svgContainer svg text[font-weight="600"] {
+  fill: var(--accent-blue);
+}
+
+@keyframes barGlow {
+  0%, 100% {
+    filter: brightness(0.85);
+  }
+  50% {
+    filter: brightness(1.4);
+  }
+}
+
+@keyframes clusterGlow {
+  0%, 100% {
+    opacity: 0.6;
+    filter: brightness(0.7);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.5);
+  }
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 2px currentColor);
+  }
+  50% {
+    opacity: 0.8;
+    filter: drop-shadow(0 0 4px currentColor);
+  }
+}
+
+.title {
+  padding: 20px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  border-top: 1px solid var(--border-primary);
+}
+
+@media (max-width: 1024px) {
+  .cardsContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .cardsContainer {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .imageWrapper {
+    height: 200px;
+  }
+
+  .title {
+    padding: 16px 20px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cardsContainer {
+    gap: 12px;
+  }
+
+  .imageWrapper {
+    height: 180px;
+  }
+
+  .title {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+}
+
