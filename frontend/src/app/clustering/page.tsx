@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import authService from '@/services/auth.service';
 import MainHeader from '@/components/MainHeader/MainHeader';
-import MainBackground from '@/components/MainBackground/MainBackground';
-import styles from './page.module.css';
+import ClusteringChart from '@/components/ClusteringChart/ClusteringChart';
+import ClusteringBackground from '@/components/ClusteringBackground/ClusteringBackground';
+import styles from './clustering.module.css';
 
-export default function Home() {
+export default function ClusteringPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
@@ -30,10 +31,14 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <MainBackground />
+      <ClusteringBackground />
       <MainHeader />
       <div className={styles.content}>
+        <div className={styles.chartSection}>
+          <ClusteringChart />
+        </div>
       </div>
     </div>
   );
 }
+

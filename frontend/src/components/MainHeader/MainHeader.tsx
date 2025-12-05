@@ -10,9 +10,13 @@ export default function MainHeader() {
     router.push('/profile');
   };
 
+  const handleLogoClick = () => {
+    router.push('/');
+  };
+
   return (
     <div className={styles.header}>
-      <div className={styles.logo}>
+      <div className={styles.logo} onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
         <div className={styles.logoIcon}></div>
         <div className={styles.logoText}>Corstat</div>
       </div>
