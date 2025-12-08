@@ -6,7 +6,7 @@ import authService from '@/services/auth.service';
 import MainHeader from '@/components/MainHeader/MainHeader';
 import MainBackground from '@/components/MainBackground/MainBackground';
 import PageCards from '@/components/PageCards/PageCards';
-import EmptyChart from '@/components/EmptyChart/EmptyChart';
+import AnalysisStatisticsChart from '@/components/AnalysisStatisticsChart/AnalysisStatisticsChart';
 import styles from './page.module.css';
 
 export default function Home() {
@@ -35,7 +35,7 @@ export default function Home() {
       <MainBackground />
       <MainHeader />
       <div className={styles.content}>
-        <EmptyChart />
+        <AnalysisStatisticsChart />
         <PageCards />
       </div>
     </div>
