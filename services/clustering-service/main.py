@@ -81,10 +81,10 @@ async def root():
     }
 
 @app.get("/cluster")
-async def cluster_suppliers():
+async def cluster_suppliers(history_id: int = None):
     if not clustering_service:
         return {"error": "Clustering service not initialized"}
-    result = clustering_service.cluster_suppliers()
+    result = clustering_service.cluster_suppliers(history_id)
     return result
 
 if __name__ == "__main__":

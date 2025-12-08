@@ -17,9 +17,9 @@ class GeneticAlgorithmService implements GeneticAlgorithmServiceInterface
         $this->geneticAlgorithmRequest = $geneticAlgorithmRequest;
     }
 
-    public function startGeneticAlgorithmRequest(float $fitnessThreshold = 0.5): array
+    public function startGeneticAlgorithmRequest(float $fitnessThreshold, int $historyId): array
     {
-        return $this->geneticAlgorithmRequest->sendRequest($fitnessThreshold);
+        return $this->geneticAlgorithmRequest->sendRequest($fitnessThreshold, $historyId);
     }
 
     public function getGeneticAlgorithmData(): array

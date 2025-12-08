@@ -139,36 +139,43 @@ class GeneticAlgorithmService:
         individual[0] = random.randint(0, len(suppliers) - 1)
         return individual,
     
+    def _crossover_individuals(self, ind1, ind2):
+        if len(ind1) == 1 and len(ind2) == 1:
+            return ind1, ind2
+        return tools.cxOnePoint(ind1, ind2)
+    
     def _run_genetic_algorithm(self, suppliers):
         if len(suppliers) == 0:
             return None
         if len(suppliers) == 1:
             return suppliers[0]
         
-        try:
-            creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-        except ValueError:
-            pass
+        if len(suppliers) == 2:
+            fitness0 = self._fitness_function([0], suppliers)[0]
+            fitness1 = self._fitness_function([1], suppliers)[0]
+            return suppliers[0] if fitness0 >= fitness1 else suppliers[1]
         
-        try:
+        if not hasattr(creator, "FitnessMax"):
+            creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+        
+        if not hasattr(creator, "Individual"):
             creator.create("Individual", list, fitness=creator.FitnessMax)
-        except ValueError:
-            pass
         
         toolbox = base.Toolbox()
         toolbox.register("individual", tools.initIterate, creator.Individual, 
                          lambda: self._create_individual(suppliers))
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
         toolbox.register("evaluate", self._fitness_function, suppliers=suppliers)
-        toolbox.register("mate", tools.cxOnePoint)
+        toolbox.register("mate", self._crossover_individuals)
         toolbox.register("mutate", self._mutate_individual, suppliers=suppliers)
-        tournsize = min(3, len(suppliers))
-        if tournsize < 1:
-            tournsize = 1
-        toolbox.register("select", tools.selTournament, tournsize=tournsize)
         
         population_size = min(50, max(2, len(suppliers) * 2))
         population = toolbox.population(n=population_size)
+        
+        tournsize = min(3, max(1, len(population) - 1))
+        if tournsize < 1:
+            tournsize = 1
+        toolbox.register("select", tools.selTournament, tournsize=tournsize)
         
         ngen = 30
         cxpb = 0.5
@@ -176,11 +183,84 @@ class GeneticAlgorithmService:
         
         for gen in range(ngen):
             try:
-                offspring = algorithms.varAnd(population, toolbox, cxpb, mutpb)
+                if len(population) <= 1:
+                    break
+                
+                if len(population) == 2:
+                    fits = toolbox.map(toolbox.evaluate, population)
+                    for fit, ind in zip(fits, population):
+                        ind.fitness.values = fit
+                    population = tools.selBest(population, 2)
+                    continue
+                
+                if len(population) < 3:
+                    fits = toolbox.map(toolbox.evaluate, population)
+                    for fit, ind in zip(fits, population):
+                        ind.fitness.values = fit
+                    population = tools.selBest(population, len(population))
+                    continue
+                
+                current_tournsize = min(tournsize, max(1, len(population) - 1))
+                if current_tournsize < 1:
+                    current_tournsize = 1
+                if current_tournsize >= len(population):
+                    current_tournsize = max(1, len(population) - 1)
+                if current_tournsize != tournsize:
+                    toolbox.register("select", tools.selTournament, tournsize=current_tournsize)
+                
+                try:
+                    offspring = algorithms.varAnd(population, toolbox, cxpb, mutpb)
+                except (ValueError, IndexError) as ve:
+                    logger.error(f'GeneticAlgorithmService[_run_genetic_algorithm] varAnd error: {str(ve)}, pop_size={len(population)}, tournsize={current_tournsize}')
+                    fits = toolbox.map(toolbox.evaluate, population)
+                    for fit, ind in zip(fits, population):
+                        ind.fitness.values = fit
+                    population = tools.selBest(population, len(population))
+                    continue
                 fits = toolbox.map(toolbox.evaluate, offspring)
                 for fit, ind in zip(fits, offspring):
                     ind.fitness.values = fit
-                population = toolbox.select(offspring, len(population))
+                
+                if len(offspring) == 0:
+                    break
+                
+                if len(offspring) == 1:
+                    population = offspring
+                    continue
+                
+                if len(offspring) == 2:
+                    population = offspring
+                    continue
+                
+                actual_tournsize = min(tournsize, len(offspring) - 1)
+                if actual_tournsize < 1:
+                    actual_tournsize = 1
+                
+                if actual_tournsize >= len(offspring):
+                    actual_tournsize = len(offspring) - 1
+                    if actual_tournsize < 1:
+                        actual_tournsize = 1
+                
+                if actual_tournsize != tournsize:
+                    toolbox.register("select", tools.selTournament, tournsize=actual_tournsize)
+                
+                select_count = min(len(population), len(offspring))
+                if select_count <= 0:
+                    population = offspring
+                    continue
+                
+                if select_count == 1:
+                    population = offspring[:1]
+                    continue
+                
+                if select_count > 0:
+                    try:
+                        population = toolbox.select(offspring, select_count)
+                    except (ValueError, IndexError) as e:
+                        logger.error(f'GeneticAlgorithmService[_run_genetic_algorithm] selection error: {str(e)}, tournsize={actual_tournsize}, select_count={select_count}, offspring_len={len(offspring)}')
+                        population = offspring[:select_count] if select_count > 0 else offspring
+                else:
+                    population = offspring[:select_count] if select_count > 0 else offspring
             except Exception as e:
                 logger.error(f'GeneticAlgorithmService[_run_genetic_algorithm] generation {gen} error: {str(e)}')
                 break
@@ -206,21 +286,35 @@ class GeneticAlgorithmService:
             logger.error(f'GeneticAlgorithmService[_get_supplier_rating] error: {str(e)}')
         return None
     
-    def _save_to_database(self, result_data, metadata, suppliers_data):
+    def _save_to_database(self, result_data, metadata, suppliers_data, history_id=None):
         cursor = self.db_connection.cursor()
         
         try:
-            run_query = """
-                INSERT INTO genetic_algorithm_runs (fitness_threshold, execution_time, suppliers_count, filtered_suppliers_count, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, NOW(), NOW())
-                RETURNING id
-            """
-            cursor.execute(run_query, (
-                metadata['fitness_threshold'],
-                metadata['execution_time'],
-                metadata['suppliers_count'],
-                metadata.get('filtered_suppliers_count', 0)
-            ))
+            if history_id:
+                run_query = """
+                    INSERT INTO genetic_algorithm_runs (history_id, fitness_threshold, execution_time, suppliers_count, filtered_suppliers_count, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, NOW(), NOW())
+                    RETURNING id
+                """
+                cursor.execute(run_query, (
+                    history_id,
+                    metadata['fitness_threshold'],
+                    metadata['execution_time'],
+                    metadata['suppliers_count'],
+                    metadata.get('filtered_suppliers_count', 0)
+                ))
+            else:
+                run_query = """
+                    INSERT INTO genetic_algorithm_runs (fitness_threshold, execution_time, suppliers_count, filtered_suppliers_count, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, NOW(), NOW())
+                    RETURNING id
+                """
+                cursor.execute(run_query, (
+                    metadata['fitness_threshold'],
+                    metadata['execution_time'],
+                    metadata['suppliers_count'],
+                    metadata.get('filtered_suppliers_count', 0)
+                ))
             run_id = cursor.fetchone()[0]
             
             all_ranked = result_data.get('all_suppliers_ranking', [])
@@ -374,21 +468,26 @@ class GeneticAlgorithmService:
                 }
             }]
         
-        if len(article_brand_data) < 2:
-            combination = article_brand_data[0]
-            return [{
-                'article': combination['article'],
-                'brand': combination['brand'],
-                'fitness_score': 1.0,
-                'metrics': {
-                    'avg_price': float(combination['avg_price']),
-                    'success_rate': float(combination['success_rate']),
-                    'avg_delivery_time': float(combination['avg_delivery_time']),
-                    'denial_rate': float(combination['denial_rate']),
-                    'orders_count': int(combination['orders_count']),
-                    'total_revenue': float(combination['total_revenue'])
-                }
-            }]
+        if len(article_brand_data) == 2:
+            normalized_combinations = self._normalize_features(article_brand_data)
+            all_ranked = []
+            for combination in normalized_combinations:
+                fitness = self._fitness_function([normalized_combinations.index(combination)], normalized_combinations)[0]
+                all_ranked.append({
+                    'article': combination['article'],
+                    'brand': combination['brand'],
+                    'fitness_score': float(fitness),
+                    'metrics': {
+                        'avg_price': float(combination['avg_price']),
+                        'success_rate': float(combination['success_rate']),
+                        'avg_delivery_time': float(combination['avg_delivery_time']),
+                        'denial_rate': float(combination['denial_rate']),
+                        'orders_count': int(combination['orders_count']),
+                        'total_revenue': float(combination['total_revenue'])
+                    }
+                })
+            all_ranked.sort(key=lambda x: x['fitness_score'], reverse=True)
+            return all_ranked
         
         normalized_combinations = self._normalize_features(article_brand_data)
         best_combination = self._run_genetic_algorithm(normalized_combinations)
@@ -417,7 +516,7 @@ class GeneticAlgorithmService:
         
         return all_ranked
     
-    def find_best_supplier(self, fitness_threshold=0.5):
+    def find_best_supplier(self, fitness_threshold=0.5, history_id=None):
         start_time = time.time()
         
         try:
@@ -480,7 +579,7 @@ class GeneticAlgorithmService:
                     'suppliers_count': 1
                 }
                 
-                self._save_to_database(result_data, metadata, suppliers_data)
+                self._save_to_database(result_data, metadata, suppliers_data, history_id)
                 
                 return result_data
             
@@ -592,7 +691,7 @@ class GeneticAlgorithmService:
                 'filtered_suppliers_count': len(filtered_suppliers)
             }
             
-            self._save_to_database(result_data, metadata, suppliers_data)
+            self._save_to_database(result_data, metadata, suppliers_data, history_id)
             
             return result_data
             

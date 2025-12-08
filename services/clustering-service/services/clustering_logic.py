@@ -161,27 +161,37 @@ class ClusteringService:
         
         return cluster_list, optimal_k
     
-    def _save_to_database(self, clusters_data, metadata):
-        query = """
-            INSERT INTO supplier_clusters (content, created_at, updated_at)
-            VALUES (%s, NOW(), NOW())
-            RETURNING id
-        """
+    def _save_to_database(self, clusters_data, metadata, history_id=None):
+        if history_id:
+            query = """
+                INSERT INTO supplier_clusters (history_id, content, created_at, updated_at)
+                VALUES (%s, %s, NOW(), NOW())
+                RETURNING id
+            """
+            cursor = self.db_connection.cursor()
+            cursor.execute(query, (history_id, json.dumps({
+                'clusters': clusters_data,
+                'metadata': metadata
+            })))
+        else:
+            query = """
+                INSERT INTO supplier_clusters (content, created_at, updated_at)
+                VALUES (%s, NOW(), NOW())
+                RETURNING id
+            """
+            cursor = self.db_connection.cursor()
+            cursor.execute(query, (json.dumps({
+                'clusters': clusters_data,
+                'metadata': metadata
+            }),))
         
-        content = {
-            'clusters': clusters_data,
-            'metadata': metadata
-        }
-        
-        cursor = self.db_connection.cursor()
-        cursor.execute(query, (json.dumps(content),))
         cluster_id = cursor.fetchone()[0]
         self.db_connection.commit()
         cursor.close()
         
         return cluster_id
     
-    def cluster_suppliers(self):
+    def cluster_suppliers(self, history_id=None):
         start_time = time.time()
         
         try:
@@ -207,7 +217,7 @@ class ClusteringService:
                 'suppliers_count': len(suppliers_data)
             }
             
-            cluster_id = self._save_to_database(clusters, metadata)
+            cluster_id = self._save_to_database(clusters, metadata, history_id)
             
             return {
                 'success': True,

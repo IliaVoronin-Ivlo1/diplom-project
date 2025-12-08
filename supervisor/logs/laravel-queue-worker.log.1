@@ -1,0 +1,26 @@
+      [2m+37 vendor frames [22m
+
+  38  /var/www/backend/artisan:16
+      Illuminate\Foundation\Application::handleCommand(Object(Symfony\Component\Console\Input\ArgvInput))
+
+
+   Illuminate\Database\QueryException 
+
+  SQLSTATE[08006] [7] connection to server at "postgres" (172.19.0.3), port 5432 failed: FATAL:  password authentication failed for user "Corstat" (Connection: pgsql, SQL: select * from "cache" where "key" in (laravel-cache-illuminate:queue:restart))
+
+  at /var/www/backend/vendor/laravel/framework/src/Illuminate/Database/Connection.php:824
+    820▕                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    821▕                 );
+    822▕             }
+    823▕ 
+  ➜ 824▕             throw new QueryException(
+    825▕                 $this->getName(), $query, $this->prepareBindings($bindings), $e
+    826▕             );
+    827▕         }
+    828▕     }
+
+      [2m+37 vendor frames [22m
+
+  38  /var/www/backend/artisan:16
+      Illuminate\Foundation\Application::handleCommand(Object(Symfony\Component\Console\Input\ArgvInput))
+

@@ -21,7 +21,7 @@ const pages: PageCard[] = [
   {
     id: 'parts-rating',
     image: '/images/parts-rating.svg',
-    route: '#',
+    route: '/parts-rating',
     title: 'Рейтинг автозапчастей'
   },
   {

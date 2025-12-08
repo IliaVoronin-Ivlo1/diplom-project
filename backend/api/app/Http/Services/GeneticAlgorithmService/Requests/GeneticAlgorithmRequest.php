@@ -17,11 +17,12 @@ class GeneticAlgorithmRequest
         $this->serviceUrl = $serviceUrl;
     }
 
-    public function sendRequest(float $fitnessThreshold = 0.5): array
+    public function sendRequest(float $fitnessThreshold, int $historyId): array
     {
         try {
             $response = Http::timeout(18000)->get($this->serviceUrl . '/find-best-supplier', [
-                'fitness_threshold' => $fitnessThreshold
+                'fitness_threshold' => $fitnessThreshold,
+                'history_id' => $historyId
             ]);
 
             if ($response->failed()) {

@@ -16,9 +16,9 @@ class ClusterService implements ClusterServiceInterface
         $this->clusterRequest = $clusterRequest;
     }
 
-    public function startClusterisationRequest(): array
+    public function startClusterisationRequest(int $historyId): array
     {
-        return $this->clusterRequest->sendRequest();
+        return $this->clusterRequest->sendRequest($historyId);
     }
 
     public function getClustersData(): array

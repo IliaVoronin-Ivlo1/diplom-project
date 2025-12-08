@@ -82,10 +82,10 @@ async def root():
     }
 
 @app.get("/find-best-supplier")
-async def find_best_supplier(fitness_threshold: float = 0.5):
+async def find_best_supplier(fitness_threshold: float = 0.5, history_id: int = None):
     if not genetic_service:
         return {"error": "Genetic algorithm service not initialized"}
-    result = genetic_service.find_best_supplier(fitness_threshold=fitness_threshold)
+    result = genetic_service.find_best_supplier(fitness_threshold=fitness_threshold, history_id=history_id)
     return result
 
 if __name__ == "__main__":

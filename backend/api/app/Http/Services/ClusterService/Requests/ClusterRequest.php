@@ -17,10 +17,12 @@ class ClusterRequest
         $this->serviceUrl = $serviceUrl;
     }
 
-    public function sendRequest(): array
+    public function sendRequest(int $historyId): array
     {
         try {
-            $response = Http::timeout(18000)->get($this->serviceUrl . '/cluster');
+            $response = Http::timeout(18000)->get($this->serviceUrl . '/cluster', [
+                'history_id' => $historyId
+            ]);
 
             if ($response->failed()) {
                 Log::info("ClusterRequest[sendRequest]", [

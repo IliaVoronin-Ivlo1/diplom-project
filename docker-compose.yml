@@ -55,6 +55,7 @@ services:
       QUALITY_CONTROL_SERVICE_URL: http://diplom_quality_control_service:8004
       CLUSTERING_SERVICE_URL: http://diplom_clustering_service:8005
       GENETIC_ALGORITHM_SERVICE_URL: http://diplom_genetic_algorithm_service:8006
+      REVERSE_GENETIC_ALGORITHM_SERVICE_URL: http://diplom_reverse_genetic_algorithm_service:8007
       MAIL_MAILER: smtp
       MAIL_HOST: smtp.gmail.com
       MAIL_PORT: 587
@@ -262,6 +263,34 @@ services:
       - postgres
       - redis
       - supplier-rating-service
+    networks:
+      - diplom_network
+    restart: unless-stopped
+
+  reverse-genetic-algorithm-service:
+    build:
+      context: ./services/reverse-genetic-algorithm-service
+      dockerfile: Dockerfile
+    container_name: diplom_reverse_genetic_algorithm_service
+    working_dir: /app
+    environment:
+      SERVICE_NAME: reverse-genetic-algorithm-service
+      SERVICE_PORT: 8007
+      REDIS_HOST: redis
+      REDIS_PASSWORD: redis_pass_2024
+      REDIS_PORT: 6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: Corstat
+      DB_USER: Corstat
+      DB_PASSWORD: Rhtyltkm1#
+    volumes:
+      - ./services/reverse-genetic-algorithm-service:/app
+    ports:
+      - "8007:8007"
+    depends_on:
+      - postgres
+      - redis
     networks:
       - diplom_network
     restart: unless-stopped
