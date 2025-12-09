@@ -36,7 +36,7 @@ class ReverseGeneticAlgorithmService:
                 ) as denial_rate
             FROM order_product
             GROUP BY order_product.article, order_product.brand
-            HAVING COUNT(order_product.id) > 0
+            HAVING COUNT(order_product.id) >= 300
             ORDER BY COUNT(order_product.id) DESC
         """
         
