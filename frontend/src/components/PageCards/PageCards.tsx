@@ -29,6 +29,12 @@ const pages: PageCard[] = [
     image: '/images/suppliers-clustering.svg',
     route: '/clustering',
     title: 'Кластеризация поставщиков'
+  },
+  {
+    id: 'price-forecasting',
+    image: '/images/price-forecasting.svg',
+    route: '/price-forecasting',
+    title: 'Прогнозирование цен автозапчастей'
   }
 ];
 
