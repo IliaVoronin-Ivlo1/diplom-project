@@ -47,6 +47,7 @@ services:
       REDIS_PASSWORD: redis_pass_2024
       REDIS_PORT: 6379
       CACHE_DRIVER: redis
+      CACHE_STORE: redis
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
       SUPPLIER_RATING_SERVICE_URL: http://diplom_supplier_rating_service:8001
@@ -330,6 +331,7 @@ services:
       REDIS_PASSWORD: redis_pass_2024
       REDIS_PORT: 6379
       CACHE_DRIVER: redis
+      CACHE_STORE: redis
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
     volumes:
