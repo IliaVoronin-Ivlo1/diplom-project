@@ -99,6 +99,10 @@ export default function ProfilePage() {
     console.log('Import data clicked');
   };
 
+  const handleAdminPanel = () => {
+    router.push('/admin');
+  };
+
   const handleSaveName = async () => {
     setSavingName(true);
     setSaveError('');
@@ -188,6 +192,7 @@ export default function ProfilePage() {
           onGarage={handleGarage}
           onImportData={handleImportData}
           onSubscriptionClick={handleSubscriptionClick}
+          onAdminPanel={user.role === 'Admin' ? handleAdminPanel : undefined}
         />
       </div>
     </div>

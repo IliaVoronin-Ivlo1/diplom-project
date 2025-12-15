@@ -69,6 +69,7 @@ class AuthController extends Controller
             $user = User::create([
                 'email' => $verification->email,
                 'password' => $verification->password,
+                'email_verified_at' => now(),
             ]);
 
             $verification->delete();

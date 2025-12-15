@@ -443,6 +443,20 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
+.actionButton.admin {
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.2) 0%, rgba(107, 107, 255, 0.2) 100%);
+  border: 1px solid rgba(255, 107, 107, 0.4);
+  color: #ff6b6b;
+}
+
+.actionButton.admin:hover {
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.3) 0%, rgba(107, 107, 255, 0.3) 100%);
+  border-color: rgba(255, 107, 107, 0.6);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(255, 107, 107, 0.3);
+}
+
 .actionButton span {
   position: relative;
   z-index: 1;

@@ -19,6 +19,7 @@ interface ProfileCardProps {
   onGarage: () => void;
   onImportData: () => void;
   onSubscriptionClick: () => void;
+  onAdminPanel?: () => void;
 }
 
 export default function ProfileCard({
@@ -37,7 +38,8 @@ export default function ProfileCard({
   onChangePassword,
   onGarage,
   onImportData,
-  onSubscriptionClick
+  onSubscriptionClick,
+  onAdminPanel
 }: ProfileCardProps) {
   return (
     <div className={styles.profileCard}>
@@ -107,7 +109,7 @@ export default function ProfileCard({
               onClick={onSubscriptionClick}
             >
               <span className={styles.subscriptionLabel}>Тариф:</span>
-              <span className={styles.subscriptionValue}>Standard</span>
+              <span className={styles.subscriptionValue}>{user.role || 'Visiter'}</span>
             </div>
           </div>
         </div>
@@ -179,6 +181,27 @@ export default function ProfileCard({
             </button>
           </div>
         </div>
+
+        {user.role === 'Admin' && onAdminPanel && (
+          <>
+            <div className={styles.divider}></div>
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Администрирование</h2>
+              <div className={styles.buttonGrid}>
+                <button 
+                  className={`${styles.actionButton} ${styles.admin}`}
+                  onClick={onAdminPanel}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Админ панель</span>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

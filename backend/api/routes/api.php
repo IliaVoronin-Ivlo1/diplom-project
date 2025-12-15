@@ -7,6 +7,7 @@ use App\Http\Controllers\GeneticAlgorithmController;
 use App\Http\Controllers\ReverseGeneticAlgorithmController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupplierOrdersStatisticsController;
+use App\Http\Controllers\AdminController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -43,5 +44,9 @@ Route::middleware('auth:sanctum')->prefix('reverse-genetic-algorithm')->group(fu
 
 Route::middleware('auth:sanctum')->prefix('statistics')->group(function () {
     Route::get('/supplier-orders', [SupplierOrdersStatisticsController::class, 'getSupplierOrdersStatistics']);
+});
+
+Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(function () {
+    Route::get('/users', [AdminController::class, 'getUsers']);
 });
 
