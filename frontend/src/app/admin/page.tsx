@@ -6,12 +6,14 @@ import authService from '@/services/auth.service';
 import adminService, { User } from '@/services/admin.service';
 import ProfileHeader from '@/components/ProfileHeader/ProfileHeader';
 import AdminBackground from '@/components/AdminBackground/AdminBackground';
+import AdminSidebar from '@/components/AdminSidebar/AdminSidebar';
 import styles from './admin.module.css';
 
 export default function AdminPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [activeSection, setActiveSection] = useState<string>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,17 +32,22 @@ export default function AdminPage() {
   }, [router]);
 
   useEffect(() => {
-    if (isAdmin) {
+    if (isAdmin && activeSection === 'users') {
       loadUsers(currentPage);
     }
   }, [currentPage, isAdmin]);
+
+  useEffect(() => {
+    if (isAdmin && activeSection === 'users' && currentPage === 1) {
+      loadUsers(1);
+    }
+  }, [activeSection, isAdmin]);
 
   const checkAdminAndLoadUsers = async () => {
     try {
       const user = await authService.getCurrentUser();
       if (user.role === 'Admin') {
         setIsAdmin(true);
-        await loadUsers(1);
       } else {
         router.push('/profile');
       }
@@ -101,12 +108,17 @@ export default function AdminPage() {
       <AdminBackground />
       <ProfileHeader onLogout={handleLogout} />
       <div className={styles.content}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Админ панель</h1>
-          <p className={styles.subtitle}>Управление пользователями</p>
-        </div>
+        <div className={styles.layout}>
+          <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+          
+          <div className={styles.mainContent}>
+            {activeSection === 'users' && (
+              <>
+                <div className={styles.header}>
+                  <h1 className={styles.title}>Пользователи</h1>
+                </div>
 
-        <div className={styles.usersTable}>
+                <div className={styles.usersTable}>
           <div className={styles.tableHeader}>
             <div className={styles.tableHeaderCell}>ID</div>
             <div className={styles.tableHeaderCell}>Имя</div>
@@ -169,6 +181,32 @@ export default function AdminPage() {
             </button>
           </div>
         )}
+              </>
+            )}
+
+            {activeSection === 'algorithms-time' && (
+              <div className={styles.sectionContent}>
+                <div className={styles.header}>
+                  <h1 className={styles.title}>Время алгоритмов</h1>
+                </div>
+                <div className={styles.placeholder}>
+                  Контент будет добавлен позже
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'algorithms-stats' && (
+              <div className={styles.sectionContent}>
+                <div className={styles.header}>
+                  <h1 className={styles.title}>Статистика алгоритмов</h1>
+                </div>
+                <div className={styles.placeholder}>
+                  Контент будет добавлен позже
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
