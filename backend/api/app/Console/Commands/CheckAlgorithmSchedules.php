@@ -23,13 +23,13 @@ class CheckAlgorithmSchedules extends Command
             $shouldRun = false;
 
             if ($schedule->last_run_at === null) {
-                $shouldRun = $this->checkTimeMatch($now, $schedule->schedule_hours, $schedule->schedule_minutes);
+                $shouldRun = $this->shouldRunFirstTime($now, $schedule->schedule_hours, $schedule->schedule_minutes);
             } else {
                 $lastRun = Carbon::parse($schedule->last_run_at);
-                $hoursSinceLastRun = abs($now->diffInHours($lastRun, false));
+                $nextRunTime = $lastRun->copy()->addHours($schedule->schedule_hours)->minute($schedule->schedule_minutes)->second(0);
 
-                if ($hoursSinceLastRun >= $schedule->schedule_hours) {
-                    $shouldRun = $this->checkTimeMatch($now, $schedule->schedule_hours, $schedule->schedule_minutes);
+                if ($now->minute === $schedule->schedule_minutes && $now->greaterThanOrEqualTo($nextRunTime)) {
+                    $shouldRun = true;
                 }
             }
 
@@ -41,7 +41,7 @@ class CheckAlgorithmSchedules extends Command
         }
     }
 
-    private function checkTimeMatch(Carbon $time, int $hours, int $minutes): bool
+    private function shouldRunFirstTime(Carbon $time, int $hours, int $minutes): bool
     {
         if ($time->minute !== $minutes) {
             return false;
