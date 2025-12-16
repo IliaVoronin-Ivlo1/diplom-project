@@ -38,9 +38,6 @@ export default function AdminSidebar({ activeSection, onSectionChange }: AdminSi
 
   return (
     <div className={styles.sidebar}>
-      <div className={styles.sidebarHeader}>
-        <h2 className={styles.sidebarTitle}>Меню</h2>
-      </div>
       <nav className={styles.nav}>
         {menuItems.map((item) => (
           <button

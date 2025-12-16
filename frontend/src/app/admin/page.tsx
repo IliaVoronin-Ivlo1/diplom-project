@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import authService from '@/services/auth.service';
 import adminService, { User } from '@/services/admin.service';
+import algorithmScheduleService, { AlgorithmSchedules } from '@/services/algorithm-schedule.service';
 import ProfileHeader from '@/components/ProfileHeader/ProfileHeader';
 import AdminBackground from '@/components/AdminBackground/AdminBackground';
 import AdminSidebar from '@/components/AdminSidebar/AdminSidebar';
@@ -18,6 +19,12 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<any>(null);
+  const [schedules, setSchedules] = useState<AlgorithmSchedules>({
+    clustering: { hours: 6, minutes: 1 },
+    genetic_algorithm: { hours: 6, minutes: 1 },
+    reverse_genetic_algorithm: { hours: 6, minutes: 1 }
+  });
+  const [schedulesLoading, setSchedulesLoading] = useState(false);
 
   useEffect(() => {
     const authenticated = authService.isAuthenticated();
@@ -35,19 +42,19 @@ export default function AdminPage() {
     if (isAdmin && activeSection === 'users') {
       loadUsers(currentPage);
     }
-  }, [currentPage, isAdmin]);
-
-  useEffect(() => {
-    if (isAdmin && activeSection === 'users' && currentPage === 1) {
-      loadUsers(1);
+    if (isAdmin && activeSection === 'algorithms-time') {
+      loadSchedules();
     }
-  }, [activeSection, isAdmin]);
+  }, [currentPage, isAdmin, activeSection]);
 
   const checkAdminAndLoadUsers = async () => {
     try {
       const user = await authService.getCurrentUser();
       if (user.role === 'Admin') {
         setIsAdmin(true);
+        if (activeSection === 'users') {
+          loadUsers(1);
+        }
       } else {
         router.push('/profile');
       }
@@ -76,6 +83,34 @@ export default function AdminPage() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const loadSchedules = async () => {
+    try {
+      setSchedulesLoading(true);
+      const data = await algorithmScheduleService.getSchedules();
+      setSchedules(data);
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        router.push('/profile');
+      }
+    } finally {
+      setSchedulesLoading(false);
+    }
+  };
+
+  const handleScheduleUpdate = async (algorithmType: string, hours: number, minutes: number) => {
+    try {
+      await algorithmScheduleService.updateSchedule(algorithmType, hours, minutes);
+      setSchedules((prev: AlgorithmSchedules) => ({
+        ...prev,
+        [algorithmType]: { hours, minutes }
+      }));
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        router.push('/profile');
+      }
+    }
   };
 
   const handleLogout = async () => {
@@ -114,10 +149,6 @@ export default function AdminPage() {
           <div className={styles.mainContent}>
             {activeSection === 'users' && (
               <>
-                <div className={styles.header}>
-                  <h1 className={styles.title}>Пользователи</h1>
-                </div>
-
                 <div className={styles.usersTable}>
           <div className={styles.tableHeader}>
             <div className={styles.tableHeaderCell}>ID</div>
@@ -186,20 +217,138 @@ export default function AdminPage() {
 
             {activeSection === 'algorithms-time' && (
               <div className={styles.sectionContent}>
-                <div className={styles.header}>
-                  <h1 className={styles.title}>Время алгоритмов</h1>
-                </div>
-                <div className={styles.placeholder}>
-                  Контент будет добавлен позже
+                <div className={styles.schedulesTable}>
+                  <div className={styles.tableHeader}>
+                    <div className={styles.tableHeaderCell}>Алгоритм</div>
+                    <div className={styles.tableHeaderCell}>Часы</div>
+                    <div className={styles.tableHeaderCell}>Минуты</div>
+                    <div className={styles.tableHeaderCell}>Действия</div>
+                  </div>
+
+                  {schedulesLoading ? (
+                    <div className={styles.emptyState}>
+                      Загрузка...
+                    </div>
+                  ) : (
+                    <>
+                      <div className={styles.tableRow}>
+                        <div className={styles.tableCell}>Кластеризация</div>
+                        <div className={styles.tableCell}>
+                          <input
+                            type="number"
+                            min="1"
+                            value={schedules.clustering.hours}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const value = parseInt(e.target.value) || 1;
+                              setSchedules((prev: AlgorithmSchedules) => ({ ...prev, clustering: { ...prev.clustering, hours: value < 1 ? 1 : value } }));
+                            }}
+                            className={styles.scheduleInput}
+                          />
+                        </div>
+                        <div className={styles.tableCell}>
+                          <input
+                            type="number"
+                            min="1"
+                            max="59"
+                            value={schedules.clustering.minutes}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const value = parseInt(e.target.value) || 1;
+                              setSchedules((prev: AlgorithmSchedules) => ({ ...prev, clustering: { ...prev.clustering, minutes: value < 1 ? 1 : value } }));
+                            }}
+                            className={styles.scheduleInput}
+                          />
+                        </div>
+                        <div className={styles.tableCell}>
+                          <button
+                            className={styles.saveButton}
+                            onClick={() => handleScheduleUpdate('clustering', schedules.clustering.hours, schedules.clustering.minutes)}
+                          >
+                            Сохранить
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className={styles.tableRow}>
+                        <div className={styles.tableCell}>Рейтинг поставщиков</div>
+                        <div className={styles.tableCell}>
+                          <input
+                            type="number"
+                            min="1"
+                            value={schedules.genetic_algorithm.hours}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const value = parseInt(e.target.value) || 1;
+                              setSchedules((prev: AlgorithmSchedules) => ({ ...prev, genetic_algorithm: { ...prev.genetic_algorithm, hours: value < 1 ? 1 : value } }));
+                            }}
+                            className={styles.scheduleInput}
+                          />
+                        </div>
+                        <div className={styles.tableCell}>
+                          <input
+                            type="number"
+                            min="1"
+                            max="59"
+                            value={schedules.genetic_algorithm.minutes}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const value = parseInt(e.target.value) || 1;
+                              setSchedules((prev: AlgorithmSchedules) => ({ ...prev, genetic_algorithm: { ...prev.genetic_algorithm, minutes: value < 1 ? 1 : value } }));
+                            }}
+                            className={styles.scheduleInput}
+                          />
+                        </div>
+                        <div className={styles.tableCell}>
+                          <button
+                            className={styles.saveButton}
+                            onClick={() => handleScheduleUpdate('genetic_algorithm', schedules.genetic_algorithm.hours, schedules.genetic_algorithm.minutes)}
+                          >
+                            Сохранить
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className={styles.tableRow}>
+                        <div className={styles.tableCell}>Рейтинг автозапчастей</div>
+                        <div className={styles.tableCell}>
+                          <input
+                            type="number"
+                            min="1"
+                            value={schedules.reverse_genetic_algorithm.hours}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const value = parseInt(e.target.value) || 1;
+                              setSchedules((prev: AlgorithmSchedules) => ({ ...prev, reverse_genetic_algorithm: { ...prev.reverse_genetic_algorithm, hours: value < 1 ? 1 : value } }));
+                            }}
+                            className={styles.scheduleInput}
+                          />
+                        </div>
+                        <div className={styles.tableCell}>
+                          <input
+                            type="number"
+                            min="1"
+                            max="59"
+                            value={schedules.reverse_genetic_algorithm.minutes}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const value = parseInt(e.target.value) || 1;
+                              setSchedules((prev: AlgorithmSchedules) => ({ ...prev, reverse_genetic_algorithm: { ...prev.reverse_genetic_algorithm, minutes: value < 1 ? 1 : value } }));
+                            }}
+                            className={styles.scheduleInput}
+                          />
+                        </div>
+                        <div className={styles.tableCell}>
+                          <button
+                            className={styles.saveButton}
+                            onClick={() => handleScheduleUpdate('reverse_genetic_algorithm', schedules.reverse_genetic_algorithm.hours, schedules.reverse_genetic_algorithm.minutes)}
+                          >
+                            Сохранить
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             )}
 
             {activeSection === 'algorithms-stats' && (
               <div className={styles.sectionContent}>
-                <div className={styles.header}>
-                  <h1 className={styles.title}>Статистика алгоритмов</h1>
-                </div>
                 <div className={styles.placeholder}>
                   Контент будет добавлен позже
                 </div>

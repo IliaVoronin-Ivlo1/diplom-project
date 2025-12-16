@@ -67,16 +67,20 @@
 .layout {
   display: flex;
   gap: 24px;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .mainContent {
   flex: 1;
   min-width: 0;
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
 }
 
 .sectionContent {
   width: 100%;
+  margin-top: 24px;
 }
 
 .placeholder {
@@ -90,9 +94,6 @@
   backdrop-filter: blur(10px);
 }
 
-.header {
-  margin-bottom: 32px;
-}
 
 .title {
   font-size: 42px;
@@ -233,6 +234,58 @@
     gap: 12px;
     padding: 16px 20px;
   }
+}
+
+.schedulesTable {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.schedulesTable .tableHeader {
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+
+.schedulesTable .tableRow {
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+
+.scheduleInput {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.scheduleInput:focus {
+  outline: none;
+  border-color: rgba(74, 158, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.saveButton {
+  padding: 10px 20px;
+  background: rgba(74, 158, 255, 0.15);
+  border: 1px solid rgba(74, 158, 255, 0.3);
+  border-radius: 8px;
+  color: var(--accent-blue);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveButton:hover {
+  background: rgba(74, 158, 255, 0.25);
+  border-color: rgba(74, 158, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {
