@@ -9,7 +9,7 @@ class ClusterServiceException extends Exception
     public function render($request)
     {
         return response()->json([
-            "status" => "false",
+            "success" => false,
             "message" => "Ошибка сервиса кластеризации"
         ], 500);
     }

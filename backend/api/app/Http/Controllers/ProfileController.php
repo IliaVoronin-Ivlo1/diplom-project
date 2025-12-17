@@ -59,7 +59,7 @@ class ProfileController extends Controller
                 'created_at' => now(),
             ]);
 
-            $resetUrl = env('FRONTEND_URL', 'http://localhost:8080') . '/reset-password?token=' . urlencode($token) . '&email=' . urlencode($user->email);
+            $resetUrl = config('app.frontend_url') . '/reset-password?token=' . urlencode($token) . '&email=' . urlencode($user->email);
 
             Mail::to($user->email)->send(new ResetPasswordMail($resetUrl, $user->email));
 
@@ -94,7 +94,7 @@ class ProfileController extends Controller
                 'created_at' => now(),
             ]);
 
-            $resetUrl = env('FRONTEND_URL', 'http://localhost:8080') . '/reset-password?token=' . urlencode($token) . '&email=' . urlencode($user->email);
+            $resetUrl = config('app.frontend_url') . '/reset-password?token=' . urlencode($token) . '&email=' . urlencode($user->email);
 
             Mail::to($user->email)->send(new ResetPasswordMail($resetUrl, $user->email));
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Services\GeneticAlgorithmService\Contract\GeneticAlgorithmServiceInterface;
 use App\Http\Services\GeneticAlgorithmService\Exceptions\GeneticAlgorithmServiceException;
 
@@ -23,14 +24,14 @@ class GeneticAlgorithmController extends Controller
         } catch (GeneticAlgorithmServiceException $e) {
             return $e->render($request);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::info("GeneticAlgorithmController[getResultsData]", [
+            Log::error("GeneticAlgorithmController[getResultsData]", [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             return response()->json([
-                "status" => "false",
+                "success" => false,
                 "message" => "Ошибка при получении данных генетического алгоритма: " . $e->getMessage()
             ], 500);
         }
@@ -44,14 +45,14 @@ class GeneticAlgorithmController extends Controller
         } catch (GeneticAlgorithmServiceException $e) {
             return $e->render($request);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::info("GeneticAlgorithmController[getSupplierCombinations]", [
+            Log::error("GeneticAlgorithmController[getSupplierCombinations]", [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             return response()->json([
-                "status" => "false",
+                "success" => false,
                 "message" => "Ошибка при получении комбинаций поставщика: " . $e->getMessage()
             ], 500);
         }

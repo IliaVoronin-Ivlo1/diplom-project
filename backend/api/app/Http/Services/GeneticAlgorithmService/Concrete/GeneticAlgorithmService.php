@@ -112,7 +112,7 @@ class GeneticAlgorithmService implements GeneticAlgorithmServiceInterface
             
             return ['results' => $results];
         } catch (\Throwable $e) {
-            Log::info("GeneticAlgorithmService[getGeneticAlgorithmData]", [
+            Log::error("GeneticAlgorithmService[getGeneticAlgorithmData]", [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -168,7 +168,7 @@ class GeneticAlgorithmService implements GeneticAlgorithmServiceInterface
             
             return ['combinations' => $combinations];
         } catch (\Throwable $e) {
-            Log::info("GeneticAlgorithmService[getSupplierCombinations]", [
+            Log::error("GeneticAlgorithmService[getSupplierCombinations]", [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),

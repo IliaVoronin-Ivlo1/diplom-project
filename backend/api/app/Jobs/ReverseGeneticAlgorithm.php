@@ -40,7 +40,7 @@ class ReverseGeneticAlgorithm implements ShouldQueue
                 $history->save();
             }
         } catch (\Exception $e) {
-            Log::info("ReverseGeneticAlgorithm[handle]", [
+            Log::error("ReverseGeneticAlgorithm[handle]", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

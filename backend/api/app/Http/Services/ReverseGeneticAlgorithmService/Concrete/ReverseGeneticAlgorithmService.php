@@ -175,7 +175,7 @@ class ReverseGeneticAlgorithmService implements ReverseGeneticAlgorithmServiceIn
             
             return ['results' => $results];
         } catch (\Throwable $e) {
-            Log::info("ReverseGeneticAlgorithmService[getReverseGeneticAlgorithmData]", [
+            Log::error("ReverseGeneticAlgorithmService[getReverseGeneticAlgorithmData]", [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -238,7 +238,7 @@ class ReverseGeneticAlgorithmService implements ReverseGeneticAlgorithmServiceIn
             
             return ['suppliers' => $suppliers];
         } catch (\Throwable $e) {
-            Log::info("ReverseGeneticAlgorithmService[getArticleBrandSuppliers]", [
+            Log::error("ReverseGeneticAlgorithmService[getArticleBrandSuppliers]", [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),

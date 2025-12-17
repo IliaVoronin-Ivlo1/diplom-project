@@ -12,7 +12,7 @@ class GeneticAlgorithmServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(GeneticAlgorithmRequest::class, function ($app) {
-            $serviceUrl = env('GENETIC_ALGORITHM_SERVICE_URL', 'http://diplom_genetic_algorithm_service:8006');
+            $serviceUrl = config('services.genetic_algorithm_service_url');
             return new GeneticAlgorithmRequest($serviceUrl);
         });
 

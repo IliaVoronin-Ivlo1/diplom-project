@@ -42,7 +42,7 @@ class GeneticAlgorithm implements ShouldQueue
                 $history->save();
             }
         } catch (\Exception $e) {
-            Log::info("GeneticAlgorithm[handle]", [
+            Log::error("GeneticAlgorithm[handle]", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

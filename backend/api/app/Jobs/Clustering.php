@@ -40,7 +40,7 @@ class Clustering implements ShouldQueue
                 $history->save();
             }
         } catch (\Exception $e) {
-            Log::info("Clustering[handle]", [
+            Log::error("Clustering[handle]", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

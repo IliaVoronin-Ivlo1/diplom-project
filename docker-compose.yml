@@ -337,6 +337,7 @@ services:
     volumes:
       - ./supervisor/conf.d:/etc/supervisor/conf.d
       - ./supervisor/logs:/var/log/supervisor
+      - ./supervisor/start-scheduler.sh:/var/www/start-scheduler.sh
       - ./backend/api:/var/www/backend
     depends_on:
       - backend

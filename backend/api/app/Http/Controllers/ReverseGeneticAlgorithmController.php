@@ -24,14 +24,14 @@ class ReverseGeneticAlgorithmController extends Controller
         } catch (ReverseGeneticAlgorithmServiceException $e) {
             return $e->render($request);
         } catch (\Exception $e) {
-            Log::info("ReverseGeneticAlgorithmController[getResultsData]", [
+            Log::error("ReverseGeneticAlgorithmController[getResultsData]", [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             return response()->json([
-                "status" => "false",
+                "success" => false,
                 "message" => "Ошибка при получении данных обратного генетического алгоритма: " . $e->getMessage()
             ], 500);
         }
@@ -45,14 +45,14 @@ class ReverseGeneticAlgorithmController extends Controller
         } catch (ReverseGeneticAlgorithmServiceException $e) {
             return $e->render($request);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::info("ReverseGeneticAlgorithmController[getArticleBrandSuppliers]", [
+            Log::error("ReverseGeneticAlgorithmController[getArticleBrandSuppliers]", [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             return response()->json([
-                "status" => "false",
+                "success" => false,
                 "message" => "Ошибка при получении поставщиков автозапчасти: " . $e->getMessage()
             ], 500);
         }

@@ -24,7 +24,7 @@ class ClusterController extends Controller
             return $e->render($request);
         } catch (\Exception $e) {
             return response()->json([
-                "status" => "false",
+                "success" => false,
                 "message" => "Ошибка при получении данных кластеризации"
             ], 500);
         }

@@ -30,7 +30,7 @@ class AuthController extends Controller
                 'expires_at' => now()->addHours(24),
             ]);
 
-            $verificationUrl = env('APP_URL') . '/api/auth/verify-email?token=' . urlencode($token);
+            $verificationUrl = config('app.url') . '/api/auth/verify-email?token=' . urlencode($token);
 
             Mail::to($request->email)->send(new VerifyEmailMail($verificationUrl, $request->email));
 
@@ -58,12 +58,12 @@ class AuthController extends Controller
             $verification = EmailVerification::where('token', $token)->first();
 
             if (!$verification) {
-                return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=' . urlencode('invalid_token'));
+                return redirect(config('app.frontend_url') . '/login?error=' . urlencode('invalid_token'));
             }
 
             if (now()->greaterThan($verification->expires_at)) {
                 $verification->delete();
-                return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=' . urlencode('token_expired'));
+                return redirect(config('app.frontend_url') . '/login?error=' . urlencode('token_expired'));
             }
 
             $user = User::create([
@@ -76,14 +76,14 @@ class AuthController extends Controller
 
             $authToken = $user->createToken('auth_token')->plainTextToken;
 
-            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/profile?token=' . urlencode($authToken) . '&registered=true');
+            return redirect(config('app.frontend_url') . '/profile?token=' . urlencode($authToken) . '&registered=true');
         } catch (\Exception $e) {
             Log::error('AuthController[verifyEmail]', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/login?error=' . urlencode('server_error'));
+            return redirect(config('app.frontend_url') . '/login?error=' . urlencode('server_error'));
         }
     }
 

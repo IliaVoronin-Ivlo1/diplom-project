@@ -9,7 +9,7 @@ class ReverseGeneticAlgorithmServiceException extends Exception
     public function render($request)
     {
         return response()->json([
-            "status" => "false",
+            "success" => false,
             "message" => "Ошибка сервиса обратного генетического алгоритма"
         ], 500);
     }

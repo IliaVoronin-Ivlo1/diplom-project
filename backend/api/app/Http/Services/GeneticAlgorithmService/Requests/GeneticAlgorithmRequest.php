@@ -26,7 +26,7 @@ class GeneticAlgorithmRequest
             ]);
 
             if ($response->failed()) {
-                Log::info("GeneticAlgorithmRequest[sendRequest]", [
+                Log::error("GeneticAlgorithmRequest[sendRequest]", [
                     'status' => $response->status(),
                     'body' => $response->body()
                 ]);
@@ -36,19 +36,19 @@ class GeneticAlgorithmRequest
             return $response->json();
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::info("GeneticAlgorithmRequest[sendRequest]", [
+            Log::error("GeneticAlgorithmRequest[sendRequest]", [
                 'error' => 'Connection error',
                 'message' => $e->getMessage()
             ]);
             throw new GeneticAlgorithmServiceConnectionException($e->getMessage());
         } catch (\Illuminate\Http\Client\RequestException $e) {
-            Log::info("GeneticAlgorithmRequest[sendRequest]", [
+            Log::error("GeneticAlgorithmRequest[sendRequest]", [
                 'error' => 'Request error',
                 'message' => $e->getMessage()
             ]);
             throw new GeneticAlgorithmServiceException($e->getMessage());
         } catch (\Exception $e) {
-            Log::info("GeneticAlgorithmRequest[sendRequest]", [
+            Log::error("GeneticAlgorithmRequest[sendRequest]", [
                 'error' => 'Unknown error',
                 'message' => $e->getMessage()
             ]);

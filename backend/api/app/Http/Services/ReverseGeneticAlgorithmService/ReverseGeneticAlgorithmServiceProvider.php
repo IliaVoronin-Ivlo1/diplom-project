@@ -12,7 +12,7 @@ class ReverseGeneticAlgorithmServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ReverseGeneticAlgorithmRequest::class, function ($app) {
-            $serviceUrl = env('REVERSE_GENETIC_ALGORITHM_SERVICE_URL', 'http://diplom_reverse_genetic_algorithm_service:8007');
+            $serviceUrl = config('services.reverse_genetic_algorithm_service_url');
             return new ReverseGeneticAlgorithmRequest($serviceUrl);
         });
 

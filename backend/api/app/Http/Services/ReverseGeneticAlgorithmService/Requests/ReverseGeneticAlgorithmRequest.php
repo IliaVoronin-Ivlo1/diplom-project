@@ -28,7 +28,7 @@ class ReverseGeneticAlgorithmRequest
             $response = Http::timeout(18000)->get($this->serviceUrl . '/find-best-article-brands', $queryParams);
 
             if ($response->failed()) {
-                Log::info("ReverseGeneticAlgorithmRequest[sendRequest]", [
+                Log::error("ReverseGeneticAlgorithmRequest[sendRequest]", [
                     'status' => $response->status(),
                     'body' => $response->body()
                 ]);
@@ -38,19 +38,19 @@ class ReverseGeneticAlgorithmRequest
             return $response->json();
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::info("ReverseGeneticAlgorithmRequest[sendRequest]", [
+            Log::error("ReverseGeneticAlgorithmRequest[sendRequest]", [
                 'error' => 'Connection error',
                 'message' => $e->getMessage()
             ]);
             throw new ReverseGeneticAlgorithmServiceConnectionException($e->getMessage());
         } catch (\Illuminate\Http\Client\RequestException $e) {
-            Log::info("ReverseGeneticAlgorithmRequest[sendRequest]", [
+            Log::error("ReverseGeneticAlgorithmRequest[sendRequest]", [
                 'error' => 'Request error',
                 'message' => $e->getMessage()
             ]);
             throw new ReverseGeneticAlgorithmServiceException($e->getMessage());
         } catch (\Exception $e) {
-            Log::info("ReverseGeneticAlgorithmRequest[sendRequest]", [
+            Log::error("ReverseGeneticAlgorithmRequest[sendRequest]", [
                 'error' => 'Unknown error',
                 'message' => $e->getMessage()
             ]);

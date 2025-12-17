@@ -10,4 +10,5 @@ Artisan::command('inspire', function () {
 
 Schedule::command('algorithm-schedules:check')
     ->everyMinute()
-    ->withoutOverlapping();
+    ->withoutOverlapping()
+    ->runInBackground();

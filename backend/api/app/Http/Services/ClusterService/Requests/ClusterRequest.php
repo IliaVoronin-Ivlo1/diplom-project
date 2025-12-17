@@ -25,7 +25,7 @@ class ClusterRequest
             ]);
 
             if ($response->failed()) {
-                Log::info("ClusterRequest[sendRequest]", [
+                Log::error("ClusterRequest[sendRequest]", [
                     'status' => $response->status(),
                     'body' => $response->body()
                 ]);
@@ -35,19 +35,19 @@ class ClusterRequest
             return $response->json();
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::info("ClusterRequest[sendRequest]", [
+            Log::error("ClusterRequest[sendRequest]", [
                 'error' => 'Connection error',
                 'message' => $e->getMessage()
             ]);
             throw new ClusterServiceConnectionException($e->getMessage());
         } catch (\Illuminate\Http\Client\RequestException $e) {
-            Log::info("ClusterRequest[sendRequest]", [
+            Log::error("ClusterRequest[sendRequest]", [
                 'error' => 'Request error',
                 'message' => $e->getMessage()
             ]);
             throw new ClusterServiceException($e->getMessage());
         } catch (\Exception $e) {
-            Log::info("ClusterRequest[sendRequest]", [
+            Log::error("ClusterRequest[sendRequest]", [
                 'error' => 'Unknown error',
                 'message' => $e->getMessage()
             ]);

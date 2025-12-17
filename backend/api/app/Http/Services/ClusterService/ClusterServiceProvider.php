@@ -12,7 +12,7 @@ class ClusterServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ClusterRequest::class, function ($app) {
-            $serviceUrl = env('CLUSTERING_SERVICE_URL', 'http://diplom_clustering_service:8005');
+            $serviceUrl = config('services.clustering_service_url');
             return new ClusterRequest($serviceUrl);
         });
 

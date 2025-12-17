@@ -36,7 +36,7 @@ class ClusterService implements ClusterServiceInterface
             
             return ['clusters' => $clusters];
         } catch (\Exception $e) {
-            Log::info("ClusterService[getClustersData]", ['error' => $e->getMessage()]);
+            Log::error("ClusterService[getClustersData]", ['error' => $e->getMessage()]);
             return ['clusters' => []];
         }
     }
