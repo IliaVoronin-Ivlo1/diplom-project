@@ -233,6 +233,55 @@
   }
 }
 
+.card[data-card-id="price-forecasting"]:hover .svgContainer svg circle.forecast-point-1 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.card[data-card-id="price-forecasting"]:hover .svgContainer svg circle.forecast-point-2 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+.card[data-card-id="price-forecasting"]:hover .svgContainer svg circle.forecast-point-3 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+.card[data-card-id="price-forecasting"]:hover .svgContainer svg circle.forecast-point-4 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+
+.card[data-card-id="price-forecasting"]:hover .svgContainer svg circle.forecast-point-5 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+.card[data-card-id="price-forecasting"]:hover .svgContainer svg circle.forecast-point-6 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.card[data-card-id="price-forecasting"]:hover .svgContainer svg circle.forecast-point-7 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+.card[data-card-id="price-forecasting"]:hover .svgContainer svg circle.forecast-point-8 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 1.4s;
+}
+
+@keyframes pointGlow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 2px #4a9eff);
+  }
+  50% {
+    filter: brightness(2.5) drop-shadow(0 0 12px #6eb5ff);
+  }
+}
+
 .title {
   padding: 20px 24px;
   font-size: 18px;

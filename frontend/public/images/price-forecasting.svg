@@ -1,5 +1,18 @@
 <svg viewBox="0 0 800 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
   <defs>
+    <style>
+      .forecast-point {
+        transition: filter 0.3s ease;
+      }
+      @keyframes pointGlow {
+        0%, 100% {
+          filter: brightness(1) drop-shadow(0 0 2px #4a9eff);
+        }
+        50% {
+          filter: brightness(2.5) drop-shadow(0 0 12px #6eb5ff);
+        }
+      }
+    </style>
     <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" style="stop-color:#0a0b0d;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#12141a;stop-opacity:1" />
@@ -62,19 +75,14 @@
     <path d="M 120 152 L 200 128 L 280 112 L 360 96 L 440 80 L 520 72 L 600 64 L 680 56 L 680 168 L 120 168 Z" 
           fill="url(#areaGradient)"/>
     
-    <circle cx="120" cy="152" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
-    <circle cx="200" cy="128" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
-    <circle cx="280" cy="112" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
-    <circle cx="360" cy="96" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
-    <circle cx="440" cy="80" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
-    <circle cx="520" cy="72" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
-    <circle cx="600" cy="64" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
-    <circle cx="680" cy="56" r="5" fill="#6eb5ff" filter="url(#pointGlow)"/>
-    
-    <path d="M 680 56 L 700 40 L 720 56 L 700 72 Z" fill="#6eb5ff" opacity="0.8"/>
-    <path d="M 680 56 L 700 40" stroke="#6eb5ff" stroke-width="2" opacity="0.6" stroke-dasharray="4,4"/>
-    <text x="720" y="38" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
-          font-size="10" font-weight="600" fill="#6eb5ff">Прогноз</text>
+    <circle class="forecast-point forecast-point-1" cx="120" cy="152" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-2" cx="200" cy="128" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-3" cx="280" cy="112" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-4" cx="360" cy="96" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-5" cx="440" cy="80" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-6" cx="520" cy="72" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-7" cx="600" cy="64" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-8" cx="680" cy="56" r="5" fill="#6eb5ff" filter="url(#pointGlow)"/>
   </g>
   
   <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
