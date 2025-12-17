@@ -57,6 +57,8 @@ services:
       CLUSTERING_SERVICE_URL: http://diplom_clustering_service:8005
       GENETIC_ALGORITHM_SERVICE_URL: http://diplom_genetic_algorithm_service:8006
       REVERSE_GENETIC_ALGORITHM_SERVICE_URL: http://diplom_reverse_genetic_algorithm_service:8007
+      SEASONALITY_ANALYSIS_SERVICE_URL: http://diplom_seasonality_analysis_service:8008
+      PRICE_FORECASTING_SERVICE_URL: http://diplom_price_forecasting_service:8009
       MAIL_MAILER: smtp
       MAIL_HOST: smtp.gmail.com
       MAIL_PORT: 587
@@ -292,6 +294,64 @@ services:
     depends_on:
       - postgres
       - redis
+    networks:
+      - diplom_network
+    restart: unless-stopped
+
+  seasonality-analysis-service:
+    build:
+      context: ./services/seasonality-analysis-service
+      dockerfile: Dockerfile
+    container_name: diplom_seasonality_analysis_service
+    working_dir: /app
+    environment:
+      SERVICE_NAME: seasonality-analysis-service
+      SERVICE_PORT: 8008
+      REDIS_HOST: redis
+      REDIS_PASSWORD: redis_pass_2024
+      REDIS_PORT: 6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: Corstat
+      DB_USER: Corstat
+      DB_PASSWORD: Rhtyltkm1#
+    volumes:
+      - ./services/seasonality-analysis-service:/app
+    ports:
+      - "8008:8008"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - diplom_network
+    restart: unless-stopped
+
+  price-forecasting-service:
+    build:
+      context: ./services/price-forecasting-service
+      dockerfile: Dockerfile
+    container_name: diplom_price_forecasting_service
+    working_dir: /app
+    environment:
+      SERVICE_NAME: price-forecasting-service
+      SERVICE_PORT: 8009
+      REDIS_HOST: redis
+      REDIS_PASSWORD: redis_pass_2024
+      REDIS_PORT: 6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: Corstat
+      DB_USER: Corstat
+      DB_PASSWORD: Rhtyltkm1#
+      SEASONALITY_SERVICE_URL: http://diplom_seasonality_analysis_service:8008
+    volumes:
+      - ./services/price-forecasting-service:/app
+    ports:
+      - "8009:8009"
+    depends_on:
+      - postgres
+      - redis
+      - seasonality-analysis-service
     networks:
       - diplom_network
     restart: unless-stopped
