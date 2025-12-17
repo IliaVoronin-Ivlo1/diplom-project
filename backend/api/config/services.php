@@ -38,5 +38,7 @@ return [
     'clustering_service_url' => env('CLUSTERING_SERVICE_URL', 'http://diplom_clustering_service:8005'),
     'genetic_algorithm_service_url' => env('GENETIC_ALGORITHM_SERVICE_URL', 'http://diplom_genetic_algorithm_service:8006'),
     'reverse_genetic_algorithm_service_url' => env('REVERSE_GENETIC_ALGORITHM_SERVICE_URL', 'http://diplom_reverse_genetic_algorithm_service:8007'),
+    'seasonality_analysis_service_url' => env('SEASONALITY_ANALYSIS_SERVICE_URL', 'http://diplom_seasonality_analysis_service:8008'),
+    'price_forecasting_service_url' => env('PRICE_FORECASTING_SERVICE_URL', 'http://diplom_price_forecasting_service:8009'),
 
 ];

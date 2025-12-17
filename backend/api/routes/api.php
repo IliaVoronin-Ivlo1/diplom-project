@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupplierOrdersStatisticsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AlgorithmScheduleController;
+use App\Http\Controllers\PriceForecastingController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -51,5 +52,11 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(functi
     Route::get('/users', [AdminController::class, 'getUsers']);
     Route::get('/algorithm-schedules', [AlgorithmScheduleController::class, 'getSchedules']);
     Route::put('/algorithm-schedules/{algorithmType}', [AlgorithmScheduleController::class, 'updateSchedule']);
+});
+
+Route::middleware('auth:sanctum')->prefix('price-forecasting')->group(function () {
+    Route::get('/article-brand-list', [PriceForecastingController::class, 'getArticleBrandList']);
+    Route::get('/seasonality/{article}/{brand}', [PriceForecastingController::class, 'getSeasonalityData']);
+    Route::get('/forecast/{article}/{brand}', [PriceForecastingController::class, 'getForecastData']);
 });
 

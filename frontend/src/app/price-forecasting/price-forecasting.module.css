@@ -13,33 +13,63 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 200px);
+  gap: 24px;
 }
 
-.placeholder {
-  text-align: center;
-  padding: 60px 40px;
+.tabs {
+  display: flex;
+  gap: 12px;
   background: var(--secondary-dark);
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid var(--border-primary);
+  padding: 8px;
   box-shadow: var(--shadow-md);
-  max-width: 600px;
-  width: 100%;
 }
 
-.title {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 16px 0;
-}
-
-.subtitle {
+.tab {
+  flex: 1;
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
   font-size: 16px;
+  font-weight: 500;
   color: var(--text-secondary);
-  margin: 0;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background: rgba(74, 158, 255, 0.1);
+}
+
+.tab.active {
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-subtle) 100%);
+  color: #0a0b0d;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(74, 158, 255, 0.25);
+}
+
+.mainContent {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.chartContainer {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .mainContent {
+    flex-direction: column;
+  }
+
+  .chartContainer {
+    width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
@@ -47,12 +77,11 @@
     padding: 20px 16px;
   }
 
-  .placeholder {
-    padding: 40px 24px;
+  .tabs {
+    flex-direction: column;
   }
 
-  .title {
-    font-size: 24px;
+  .tab {
+    width: 100%;
   }
 }
-
