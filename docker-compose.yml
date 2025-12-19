@@ -70,6 +70,7 @@ services:
       APP_URL: http://localhost:8080
     volumes:
       - ./backend/api:/var/www
+      - ./database/backups:/var/www/storage/app/backups
     ports:
       - "9001:9000"
     depends_on:

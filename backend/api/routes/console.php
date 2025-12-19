@@ -12,3 +12,9 @@ Schedule::command('algorithm-schedules:check')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();
+
+Schedule::command('db:backup')
+    ->daily()
+    ->at('02:00')
+    ->withoutOverlapping()
+    ->runInBackground();
