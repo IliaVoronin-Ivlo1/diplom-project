@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\AnalysisHistory;
+use App\Http\Requests\GetSeasonalityDataRequest;
+use App\Http\Requests\GetForecastDataRequest;
 
 class PriceForecastingController extends Controller
 {
@@ -82,9 +84,12 @@ class PriceForecastingController extends Controller
         }
     }
 
-    public function getSeasonalityData(Request $request, string $article, string $brand)
+    public function getSeasonalityData(GetSeasonalityDataRequest $request)
     {
         try {
+            $article = $request->input('article');
+            $brand = $request->input('brand');
+            
             $history = AnalysisHistory::where('name', AnalysisHistory::NAME_SEASONALITY_ANALYSIS)
                 ->where('status', 'SUCCESS')
                 ->latest()
@@ -136,9 +141,12 @@ class PriceForecastingController extends Controller
         }
     }
 
-    public function getForecastData(Request $request, string $article, string $brand)
+    public function getForecastData(GetForecastDataRequest $request)
     {
         try {
+            $article = $request->input('article');
+            $brand = $request->input('brand');
+            
             $history = AnalysisHistory::where('name', AnalysisHistory::NAME_PRICE_FORECASTING)
                 ->where('status', 'SUCCESS')
                 ->latest()

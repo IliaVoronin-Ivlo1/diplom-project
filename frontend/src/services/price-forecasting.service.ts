@@ -64,9 +64,10 @@ class PriceForecastingService {
       return this.seasonalityDataCache.get(cacheKey)!;
     }
     
-    const encodedArticle = encodeURIComponent(article);
-    const encodedBrand = encodeURIComponent(brand);
-    const response = await apiClient.get(`/price-forecasting/seasonality/${encodedArticle}/${encodedBrand}`);
+    const response = await apiClient.post('/price-forecasting/seasonality', {
+      article,
+      brand
+    });
     const data = response.data.data;
     this.seasonalityDataCache.set(cacheKey, data);
     return data;
@@ -79,9 +80,10 @@ class PriceForecastingService {
       return this.forecastDataCache.get(cacheKey)!;
     }
     
-    const encodedArticle = encodeURIComponent(article);
-    const encodedBrand = encodeURIComponent(brand);
-    const response = await apiClient.get(`/price-forecasting/forecast/${encodedArticle}/${encodedBrand}`);
+    const response = await apiClient.post('/price-forecasting/forecast', {
+      article,
+      brand
+    });
     const data = response.data.data;
     this.forecastDataCache.set(cacheKey, data);
     return data;

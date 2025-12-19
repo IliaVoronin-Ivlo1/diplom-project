@@ -47,7 +47,10 @@ class ReverseGeneticAlgorithmService {
   }
 
   async getArticleBrandSuppliers(article: string, brand: string): Promise<{ suppliers: Supplier[] | null }> {
-    const response = await apiClient.get(`/reverse-genetic-algorithm/get-article-brand-suppliers/${encodeURIComponent(article)}/${encodeURIComponent(brand)}`);
+    const response = await apiClient.post('/reverse-genetic-algorithm/get-article-brand-suppliers', {
+      article,
+      brand
+    });
     return response.data;
   }
 }

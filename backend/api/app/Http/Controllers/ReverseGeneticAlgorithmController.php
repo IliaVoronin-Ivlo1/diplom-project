@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Services\ReverseGeneticAlgorithmService\Contract\ReverseGeneticAlgorithmServiceInterface;
 use App\Http\Services\ReverseGeneticAlgorithmService\Exceptions\ReverseGeneticAlgorithmServiceException;
+use App\Http\Requests\GetArticleBrandSuppliersRequest;
 use Illuminate\Support\Facades\Log;
 
 class ReverseGeneticAlgorithmController extends Controller
@@ -37,9 +38,12 @@ class ReverseGeneticAlgorithmController extends Controller
         }
     }
 
-    public function getArticleBrandSuppliers(Request $request, string $article, string $brand)
+    public function getArticleBrandSuppliers(GetArticleBrandSuppliersRequest $request)
     {
         try {
+            $article = $request->input('article');
+            $brand = $request->input('brand');
+            
             $result = $this->reverseGeneticAlgorithmService->getArticleBrandSuppliers($article, $brand);
             return response()->json($result);
         } catch (ReverseGeneticAlgorithmServiceException $e) {

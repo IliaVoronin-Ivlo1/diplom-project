@@ -41,7 +41,7 @@ Route::middleware('auth:sanctum')->prefix('genetic-algorithm')->group(function (
 
 Route::middleware('auth:sanctum')->prefix('reverse-genetic-algorithm')->group(function () {
     Route::get('/get-results-data', [ReverseGeneticAlgorithmController::class, 'getResultsData']);
-    Route::get('/get-article-brand-suppliers/{article}/{brand}', [ReverseGeneticAlgorithmController::class, 'getArticleBrandSuppliers']);
+    Route::post('/get-article-brand-suppliers', [ReverseGeneticAlgorithmController::class, 'getArticleBrandSuppliers']);
 });
 
 Route::middleware('auth:sanctum')->prefix('statistics')->group(function () {
@@ -56,7 +56,7 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(functi
 
 Route::middleware('auth:sanctum')->prefix('price-forecasting')->group(function () {
     Route::get('/article-brand-list', [PriceForecastingController::class, 'getArticleBrandList']);
-    Route::get('/seasonality/{article}/{brand}', [PriceForecastingController::class, 'getSeasonalityData']);
-    Route::get('/forecast/{article}/{brand}', [PriceForecastingController::class, 'getForecastData']);
+    Route::post('/seasonality', [PriceForecastingController::class, 'getSeasonalityData']);
+    Route::post('/forecast', [PriceForecastingController::class, 'getForecastData']);
 });
 
