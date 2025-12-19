@@ -2,9 +2,10 @@ import os
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import redis
-import psycopg2
 from contextlib import asynccontextmanager
+
+from services.database import init_db_pool, close_db_pool
+from services.connections import init_redis_connection, close_redis_connection
 
 logging.basicConfig(
     level=logging.INFO,
@@ -13,43 +14,35 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-redis_client = None
-db_connection = None
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global redis_client, db_connection
+    try:
+        init_redis_connection()
+        logger.info("Main[lifespan] Redis connection initialized")
+    except Exception as e:
+        logger.error(f"Main[lifespan] Failed to initialize Redis: {str(e)}")
+        raise
     
     try:
-        redis_client = redis.Redis(
-            host=os.getenv('REDIS_HOST', 'redis'),
-            port=int(os.getenv('REDIS_PORT', 6379)),
-            password=os.getenv('REDIS_PASSWORD'),
-            decode_responses=True
-        )
-        redis_client.ping()
-        logger.info('Подключение к Redis установлено')
+        init_db_pool()
+        logger.info("Main[lifespan] Database pool initialized")
     except Exception as e:
-        logger.error(f'Ошибка подключения к Redis {str(e)}')
-    
-    try:
-        db_connection = psycopg2.connect(
-            host=os.getenv('DB_HOST', 'postgres'),
-            port=int(os.getenv('DB_PORT', 5432)),
-            database=os.getenv('DB_NAME', 'Corstat'),
-            user=os.getenv('DB_USER', 'Corstat'),
-            password=os.getenv('DB_PASSWORD', 'Rhtyltkm1#')
-        )
-        logger.info('Подключение к PostgreSQL установлено')
-    except Exception as e:
-        logger.error(f'Ошибка подключения к PostgreSQL {str(e)}')
+        logger.error(f"Main[lifespan] Failed to initialize database pool: {str(e)}")
+        raise
     
     yield
     
-    if redis_client:
-        redis_client.close()
-    if db_connection:
-        db_connection.close()
+    try:
+        close_redis_connection()
+        logger.info("Main[lifespan] Redis connection closed")
+    except Exception as e:
+        logger.error(f"Main[lifespan] Error closing Redis: {str(e)}")
+    
+    try:
+        close_db_pool()
+        logger.info("Main[lifespan] Database pool closed")
+    except Exception as e:
+        logger.error(f"Main[lifespan] Error closing database pool: {str(e)}")
 
 app = FastAPI(
     title="Parts Matching Service",
@@ -57,11 +50,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+allowed_origins = os.getenv('CORS_ORIGINS', 'http://localhost:8080,http://localhost:3001').split(',')
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -75,10 +69,26 @@ async def root():
 
 @app.get("/health")
 async def health():
-    redis_status = "connected" if redis_client else "disconnected"
-    db_status = "connected" if db_connection else "disconnected"
+    from services.connections import get_redis_client
+    from services.database import check_db_connection
+    
+    redis_status = "disconnected"
+    db_status = "disconnected"
+    
+    try:
+        redis_client = get_redis_client()
+        redis_client.ping()
+        redis_status = "connected"
+    except:
+        pass
+    
+    if check_db_connection():
+        db_status = "connected"
+    
+    status = "healthy" if redis_status == "connected" and db_status == "connected" else "unhealthy"
+    
     return {
-        "status": "healthy",
+        "status": status,
         "redis": redis_status,
         "database": db_status
     }
@@ -94,6 +104,6 @@ async def match_parts(data: dict):
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv('SERVICE_PORT', 8002))
-    logger.info(f'Запуск сервиса подбора автозапчастей на порту {port}')
+    logger.info(f"Main[__main__] Starting parts matching service on port {port}")
     uvicorn.run(app, host="0.0.0.0", port=port)
 

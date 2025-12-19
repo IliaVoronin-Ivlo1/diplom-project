@@ -3,18 +3,17 @@ import json
 import time
 import traceback
 from datetime import datetime
-import psycopg2
-import redis
 import numpy as np
 import pandas as pd
 from prophet import Prophet
+from .database import get_db_cursor
+from .connections import get_redis_client
 
 logger = logging.getLogger(__name__)
 
 class SeasonalityService:
-    def __init__(self, redis_client, db_connection):
+    def __init__(self, redis_client=None):
         self.redis_client = redis_client
-        self.db_connection = db_connection
     
     def _get_article_brand_combinations(self):
         query = """
@@ -30,11 +29,10 @@ class SeasonalityService:
             ORDER BY COUNT(order_product.id) DESC
         """
         
-        cursor = self.db_connection.cursor()
-        cursor.execute(query)
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
+        with get_db_cursor() as cursor:
+            cursor.execute(query)
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
         
         combinations = []
         for row in rows:
@@ -59,11 +57,10 @@ class SeasonalityService:
             ORDER BY date ASC
         """
         
-        cursor = self.db_connection.cursor()
-        cursor.execute(query, (article, brand))
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
+        with get_db_cursor() as cursor:
+            cursor.execute(query, (article, brand))
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
         
         if len(rows) < 30:
             return None
@@ -265,28 +262,21 @@ class SeasonalityService:
         """
         
         for result in results:
-            cursor = None
             try:
-                cursor = self.db_connection.cursor()
-                cursor.execute(query, (
-                    history_id,
-                    result['article'],
-                    result['brand'],
-                    json.dumps(result['monthly_coefficients']),
-                    json.dumps(result['quarterly_coefficients']),
-                    json.dumps(result['weekly_coefficients']),
-                    json.dumps(result['trend']),
-                    json.dumps(result['anomalies']) if result['anomalies'] else None
-                ))
-                self.db_connection.commit()
+                with get_db_cursor() as cursor:
+                    cursor.execute(query, (
+                        history_id,
+                        result['article'],
+                        result['brand'],
+                        json.dumps(result['monthly_coefficients']),
+                        json.dumps(result['quarterly_coefficients']),
+                        json.dumps(result['weekly_coefficients']),
+                        json.dumps(result['trend']),
+                        json.dumps(result['anomalies']) if result['anomalies'] else None
+                    ))
             except Exception as e:
                 logger.error(f"SeasonalityService[_save_to_database] Error saving {result['article']}/{result['brand']}: {str(e)}")
-                if self.db_connection:
-                    self.db_connection.rollback()
                 continue
-            finally:
-                if cursor:
-                    cursor.close()
     
     def analyze_seasonality(self, history_id=None):
         start_time = time.time()

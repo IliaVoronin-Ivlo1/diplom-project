@@ -4,17 +4,16 @@ import random
 import httpx
 import json
 from datetime import datetime
-import psycopg2
-import redis
 import numpy as np
 from deap import base, creator, tools, algorithms
+from .database import get_db_cursor
+from .connections import get_redis_client
 
 logger = logging.getLogger(__name__)
 
 class GeneticAlgorithmService:
-    def __init__(self, redis_client, db_connection, supplier_rating_url):
+    def __init__(self, redis_client=None, supplier_rating_url=None):
         self.redis_client = redis_client
-        self.db_connection = db_connection
         self.supplier_rating_url = supplier_rating_url
     
     def _get_suppliers_data(self):
@@ -47,11 +46,10 @@ class GeneticAlgorithmService:
             ORDER BY MIN(product_distributor.id)
         """
         
-        cursor = self.db_connection.cursor()
-        cursor.execute(query)
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
+        with get_db_cursor() as cursor:
+            cursor.execute(query)
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
         
         suppliers = []
         for row in rows:
@@ -181,6 +179,8 @@ class GeneticAlgorithmService:
         cxpb = 0.5
         mutpb = 0.2
         
+        logger.info(f"GeneticAlgorithmService[_run_genetic_algorithm] Starting genetic algorithm with {len(suppliers)} suppliers, population_size={population_size}, ngen={ngen}")
+        
         for gen in range(ngen):
             try:
                 if len(population) <= 1:
@@ -271,6 +271,9 @@ class GeneticAlgorithmService:
         if best_supplier_idx >= len(suppliers):
             best_supplier_idx = 0
         
+        best_fitness = best_individual.fitness.values[0] if best_individual.fitness.valid else 0.0
+        logger.info(f"GeneticAlgorithmService[_run_genetic_algorithm] Completed {ngen} generations, best supplier index={best_supplier_idx}, fitness={best_fitness}")
+        
         return suppliers[best_supplier_idx]
     
     def _get_supplier_rating(self, supplier_id):
@@ -287,9 +290,7 @@ class GeneticAlgorithmService:
         return None
     
     def _save_to_database(self, result_data, metadata, suppliers_data, history_id=None):
-        cursor = self.db_connection.cursor()
-        
-        try:
+        with get_db_cursor() as cursor:
             if history_id:
                 run_query = """
                     INSERT INTO genetic_algorithm_runs (history_id, fitness_threshold, execution_time, suppliers_count, filtered_suppliers_count, created_at, updated_at)
@@ -385,17 +386,20 @@ class GeneticAlgorithmService:
                         rank
                     ))
             
-            self.db_connection.commit()
-            return run_id
-            
-        except Exception as e:
-            self.db_connection.rollback()
-            logger.error(f'GeneticAlgorithmService[_save_to_database] error: {str(e)}')
-            raise
-        finally:
-            cursor.close()
+            if history_id:
+                status_query = """
+                    UPDATE analysis_history 
+                    SET status = 'SUCCESS', updated_at = NOW()
+                    WHERE id = %s
+                """
+                cursor.execute(status_query, (history_id,))
+                logger.info(f"GeneticAlgorithmService[_save_to_database] Updated analysis_history status to SUCCESS for history_id={history_id}")
+        
+        return run_id
     
     def _get_article_brand_data(self, supplier_id, service_name):
+        from .database import get_db_cursor
+        
         query = """
             SELECT 
                 order_product.article,
@@ -423,13 +427,12 @@ class GeneticAlgorithmService:
             LIMIT 10000
         """
         
-        cursor = self.db_connection.cursor()
-        cursor.execute(query, (service_name,))
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
+        with get_db_cursor() as cursor:
+            cursor.execute(query, (service_name,))
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
         
-        logger.info(f'GeneticAlgorithmService[_get_article_brand_data] service_name={service_name}, found {len(rows)} combinations')
+        logger.info(f"GeneticAlgorithmService[_get_article_brand_data] service_name={service_name}, found {len(rows)} combinations")
         
         combinations = []
         for row in rows:
@@ -520,9 +523,24 @@ class GeneticAlgorithmService:
         start_time = time.time()
         
         try:
+            logger.info(f"GeneticAlgorithmService[find_best_supplier] Starting with fitness_threshold={fitness_threshold}, history_id={history_id}")
             suppliers_data = self._get_suppliers_data()
+            logger.info(f"GeneticAlgorithmService[find_best_supplier] Loaded {len(suppliers_data)} suppliers")
             
             if len(suppliers_data) == 0:
+                if history_id:
+                    try:
+                        from .database import get_db_cursor
+                        with get_db_cursor() as cursor:
+                            status_query = """
+                                UPDATE analysis_history 
+                                SET status = 'FAILED', updated_at = NOW()
+                                WHERE id = %s
+                            """
+                            cursor.execute(status_query, (history_id,))
+                            logger.info(f"GeneticAlgorithmService[find_best_supplier] Updated analysis_history status to FAILED for history_id={history_id} (no suppliers)")
+                    except Exception as db_error:
+                        logger.error(f'GeneticAlgorithmService[find_best_supplier] Failed to update status: {str(db_error)}')
                 return {
                     'success': False,
                     'error': 'Нет поставщиков для анализа',
@@ -584,6 +602,7 @@ class GeneticAlgorithmService:
                 return result_data
             
             normalized_suppliers = self._normalize_features(suppliers_data)
+            logger.info(f"GeneticAlgorithmService[find_best_supplier] Running genetic algorithm to find best supplier")
             best_supplier = self._run_genetic_algorithm(normalized_suppliers)
             
             if not best_supplier:
@@ -592,6 +611,7 @@ class GeneticAlgorithmService:
                     'error': 'Ошибка при выполнении генетического алгоритма'
                 }
             
+            logger.info(f"GeneticAlgorithmService[find_best_supplier] Best supplier found: id={best_supplier['id']}, service_name={best_supplier['service_name']}")
             rating = self._get_supplier_rating(best_supplier['id'])
             
             all_ranked = []
@@ -616,6 +636,8 @@ class GeneticAlgorithmService:
             
             filtered_suppliers = [s for s in normalized_suppliers 
                                  if self._fitness_function([normalized_suppliers.index(s)], normalized_suppliers)[0] >= fitness_threshold]
+            
+            logger.info(f"GeneticAlgorithmService[find_best_supplier] Filtered {len(filtered_suppliers)} suppliers with fitness >= {fitness_threshold}")
             
             suppliers_with_combinations = []
             all_combinations_global = []
@@ -697,6 +719,21 @@ class GeneticAlgorithmService:
             
         except Exception as e:
             logger.error(f'GeneticAlgorithmService[find_best_supplier] error: {str(e)}')
+            
+            if history_id:
+                try:
+                    from .database import get_db_cursor
+                    with get_db_cursor() as cursor:
+                        status_query = """
+                            UPDATE analysis_history 
+                            SET status = 'FAILED', updated_at = NOW()
+                            WHERE id = %s
+                        """
+                        cursor.execute(status_query, (history_id,))
+                        logger.info(f"GeneticAlgorithmService[find_best_supplier] Updated analysis_history status to FAILED for history_id={history_id}")
+                except Exception as db_error:
+                    logger.error(f'GeneticAlgorithmService[find_best_supplier] Failed to update status: {str(db_error)}')
+            
             return {
                 'success': False,
                 'error': str(e)

@@ -36,17 +36,12 @@ class GeneticAlgorithm implements ShouldQueue
             $geneticAlgorithmService = app(GeneticAlgorithmServiceInterface::class);
             $result = $geneticAlgorithmService->startGeneticAlgorithmRequest($this->fitnessThreshold, $this->historyId);
             Log::info("GeneticAlgorithm[handle]", ['result' => $result]);
-
-            if ($history) {
-                $history->status = AnalysisHistory::STATUS_SUCCESS;
-                $history->save();
-            }
         } catch (\Exception $e) {
             Log::error("GeneticAlgorithm[handle]", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            if ($history) {
+            if ($history && $history->status === AnalysisHistory::STATUS_IN_PROCESS) {
                 $history->status = AnalysisHistory::STATUS_FAILED;
                 $history->save();
             }

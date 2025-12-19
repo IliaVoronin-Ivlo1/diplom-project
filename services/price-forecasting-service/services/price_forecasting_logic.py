@@ -3,20 +3,19 @@ import json
 import time
 import traceback
 from datetime import datetime, timedelta
-import psycopg2
-import redis
 import numpy as np
 import pandas as pd
 from prophet import Prophet
 import xgboost as xgb
 import httpx
+from .database import get_db_cursor
+from .connections import get_redis_client
 
 logger = logging.getLogger(__name__)
 
 class PriceForecastingService:
-    def __init__(self, redis_client, db_connection, seasonality_service_url):
+    def __init__(self, redis_client=None, seasonality_service_url=None):
         self.redis_client = redis_client
-        self.db_connection = db_connection
         self.seasonality_service_url = seasonality_service_url
     
     def _get_article_brand_combinations(self):
@@ -33,11 +32,10 @@ class PriceForecastingService:
             ORDER BY COUNT(order_product.id) DESC
         """
         
-        cursor = self.db_connection.cursor()
-        cursor.execute(query)
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
+        with get_db_cursor() as cursor:
+            cursor.execute(query)
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
         
         combinations = []
         for row in rows:
@@ -62,11 +60,10 @@ class PriceForecastingService:
             ORDER BY date ASC
         """
         
-        cursor = self.db_connection.cursor()
-        cursor.execute(query, (article, brand))
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
+        with get_db_cursor() as cursor:
+            cursor.execute(query, (article, brand))
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
         
         if len(rows) < 30:
             return None
@@ -164,7 +161,6 @@ class PriceForecastingService:
                 local_cmdstan = pathlib.Path(pm.__file__).parent / 'stan_model' / 'cmdstan-2.33.1'
                 if not local_cmdstan.exists() or not (local_cmdstan / 'makefile').exists():
                     logger.info(f"PriceForecastingService[_build_prophet_model] Bundled CmdStan invalid, using installed: {cmdstan_path}")
-                    pm.CmdStanModel.cmdstan_path = str(cmdstan_path)
             except Exception as e:
                 logger.warning(f"PriceForecastingService[_build_prophet_model] Could not set CmdStan path: {str(e)}")
             
@@ -397,26 +393,19 @@ class PriceForecastingService:
         """
         
         for result in results:
-            cursor = None
             try:
-                cursor = self.db_connection.cursor()
-                cursor.execute(query, (
-                    history_id,
-                    result['article'],
-                    result['brand'],
-                    json.dumps(result['forecast_data']),
-                    json.dumps(result['accuracy_metrics']) if result['accuracy_metrics'] else None,
-                    json.dumps(result['model_info'])
-                ))
-                self.db_connection.commit()
+                with get_db_cursor() as cursor:
+                    cursor.execute(query, (
+                        history_id,
+                        result['article'],
+                        result['brand'],
+                        json.dumps(result['forecast_data']),
+                        json.dumps(result['accuracy_metrics']) if result['accuracy_metrics'] else None,
+                        json.dumps(result['model_info'])
+                    ))
             except Exception as e:
                 logger.error(f"PriceForecastingService[_save_to_database] Error saving {result['article']}/{result['brand']}: {str(e)}")
-                if self.db_connection:
-                    self.db_connection.rollback()
                 continue
-            finally:
-                if cursor:
-                    cursor.close()
     
     def forecast_prices(self, history_id=None, forecast_days=30):
         start_time = time.time()

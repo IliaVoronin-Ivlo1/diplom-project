@@ -15,7 +15,13 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt && \
     python -c "import cmdstanpy; cmdstanpy.install_cmdstan(overwrite=True)" && \
-    bash -c "CMDSTAN_DIR=\$(ls -d /root/.cmdstan/cmdstan-* 2>/dev/null | head -1); if [ -n \"\$CMDSTAN_DIR\" ] && [ -f \"\$CMDSTAN_DIR/makefile\" ]; then mkdir -p /usr/local/lib/python3.11/site-packages/prophet/stan_model/cmdstan-2.33.1 && cp \"\$CMDSTAN_DIR/makefile\" /usr/local/lib/python3.11/site-packages/prophet/stan_model/cmdstan-2.33.1/ && echo 'Makefile copied successfully'; else echo 'Warning: CmdStan makefile not found'; fi"
+    bash -c "CMDSTAN_DIR=\$(find /root/.cmdstan -maxdepth 1 -type d -name 'cmdstan-*' | head -1) && \
+             PROPHET_CMDSTAN=/usr/local/lib/python3.11/site-packages/prophet/stan_model/cmdstan-2.33.1 && \
+             mkdir -p \${PROPHET_CMDSTAN} && \
+             cp \${CMDSTAN_DIR}/makefile \${PROPHET_CMDSTAN}/ && \
+             cp -r \${CMDSTAN_DIR}/bin \${PROPHET_CMDSTAN}/ && \
+             cp -r \${CMDSTAN_DIR}/stan \${PROPHET_CMDSTAN}/ && \
+             echo 'Copied CmdStan files from \${CMDSTAN_DIR} to \${PROPHET_CMDSTAN}'"
 
 COPY . .
 

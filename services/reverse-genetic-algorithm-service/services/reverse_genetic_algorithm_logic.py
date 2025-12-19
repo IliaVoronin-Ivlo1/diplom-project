@@ -3,17 +3,16 @@ import time
 import random
 import json
 from datetime import datetime
-import psycopg2
-import redis
 import numpy as np
 from deap import base, creator, tools, algorithms
+from .database import get_db_cursor
+from .connections import get_redis_client
 
 logger = logging.getLogger(__name__)
 
 class ReverseGeneticAlgorithmService:
-    def __init__(self, redis_client, db_connection):
+    def __init__(self, redis_client=None):
         self.redis_client = redis_client
-        self.db_connection = db_connection
     
     def _get_all_article_brand_combinations(self):
         query = """
@@ -40,11 +39,10 @@ class ReverseGeneticAlgorithmService:
             ORDER BY COUNT(order_product.id) DESC
         """
         
-        cursor = self.db_connection.cursor()
-        cursor.execute(query)
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
+        with get_db_cursor() as cursor:
+            cursor.execute(query)
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
         
         combinations = []
         for row in rows:
@@ -302,11 +300,10 @@ class ReverseGeneticAlgorithmService:
             ORDER BY MIN(product_distributor.id)
         """
         
-        cursor = self.db_connection.cursor()
-        cursor.execute(query, (article, brand))
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
+        with get_db_cursor() as cursor:
+            cursor.execute(query, (article, brand))
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
         
         suppliers = []
         for row in rows:
@@ -546,9 +543,7 @@ class ReverseGeneticAlgorithmService:
         if not result_data.get('success'):
             return
         
-        cursor = self.db_connection.cursor()
-        
-        try:
+        with get_db_cursor() as cursor:
             if history_id:
                 run_query = """
                     INSERT INTO reverse_genetic_algorithm_runs (history_id, execution_time, combinations_count, created_at, updated_at)
@@ -638,12 +633,4 @@ class ReverseGeneticAlgorithmService:
                         supplier_metrics.get('orders_count', 0),
                         supplier_metrics.get('total_revenue', 0)
                     ))
-            
-            self.db_connection.commit()
-            
-        except Exception as e:
-            self.db_connection.rollback()
-            logger.error(f'ReverseGeneticAlgorithmService[_save_to_database] error: {str(e)}')
-        finally:
-            cursor.close()
 

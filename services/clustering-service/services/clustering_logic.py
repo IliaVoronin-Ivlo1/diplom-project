@@ -2,20 +2,19 @@ import logging
 import json
 import time
 from datetime import datetime, timedelta
-import psycopg2
-import redis
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+from .database import get_db_cursor
+from .connections import get_redis_client
 
 logger = logging.getLogger(__name__)
 
 class ClusteringService:
-    def __init__(self, redis_client, db_connection):
+    def __init__(self, redis_client=None):
         self.redis_client = redis_client
-        self.db_connection = db_connection
     
     def _get_suppliers_data(self):
         query = """
@@ -47,11 +46,10 @@ class ClusteringService:
             ORDER BY MIN(product_distributor.id)
         """
         
-        cursor = self.db_connection.cursor()
-        cursor.execute(query)
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
+        with get_db_cursor() as cursor:
+            cursor.execute(query)
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
         
         suppliers = []
         for row in rows:
@@ -168,26 +166,24 @@ class ClusteringService:
                 VALUES (%s, %s, NOW(), NOW())
                 RETURNING id
             """
-            cursor = self.db_connection.cursor()
-            cursor.execute(query, (history_id, json.dumps({
-                'clusters': clusters_data,
-                'metadata': metadata
-            })))
+            with get_db_cursor() as cursor:
+                cursor.execute(query, (history_id, json.dumps({
+                    'clusters': clusters_data,
+                    'metadata': metadata
+                })))
+                cluster_id = cursor.fetchone()[0]
         else:
             query = """
                 INSERT INTO supplier_clusters (content, created_at, updated_at)
                 VALUES (%s, NOW(), NOW())
                 RETURNING id
             """
-            cursor = self.db_connection.cursor()
-            cursor.execute(query, (json.dumps({
-                'clusters': clusters_data,
-                'metadata': metadata
-            }),))
-        
-        cluster_id = cursor.fetchone()[0]
-        self.db_connection.commit()
-        cursor.close()
+            with get_db_cursor() as cursor:
+                cursor.execute(query, (json.dumps({
+                    'clusters': clusters_data,
+                    'metadata': metadata
+                }),))
+                cluster_id = cursor.fetchone()[0]
         
         return cluster_id
     
