@@ -1,0 +1,134 @@
+.header {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoIcon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-subtle) 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    var(--shadow-md),
+    0 0 20px rgba(74, 158, 255, 0.2);
+  border: 1px solid var(--border-primary);
+  position: relative;
+  animation: logo-float 3s ease-in-out infinite;
+}
+
+@keyframes logo-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.logoIcon::before {
+  content: 'C';
+  font-size: 28px;
+  font-weight: 700;
+  color: #0a0b0d;
+  font-family: 'Georgia', serif;
+  animation: letter-glow-small 3s ease-in-out infinite;
+}
+
+@keyframes letter-glow-small {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(10, 11, 13, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 4px rgba(10, 11, 13, 0.8));
+  }
+}
+
+.logoText {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.profileButton {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-subtle) 100%);
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: 0 2px 8px rgba(74, 158, 255, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.profileButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.profileButton:hover::before {
+  left: 100%;
+}
+
+.profileButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.35);
+}
+
+.profileButton svg {
+  width: 20px;
+  height: 20px;
+  color: #ffffff;
+  transition: transform var(--transition-normal);
+  position: relative;
+  z-index: 1;
+}
+
+.profileButton:hover svg {
+  transform: scale(1.1);
+}
+
+@media (max-width: 480px) {
+  .logoIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .logoIcon::before {
+    font-size: 22px;
+  }
+
+  .logoText {
+    font-size: 18px;
+  }
+
+  .profileButton {
+    width: 40px;
+    height: 40px;
+  }
+}
+

@@ -1,0 +1,148 @@
+<svg width="800" height="500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Градиент для фона -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0b0d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#12141a;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Градиент для столбцов -->
+    <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6eb5ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#4a9eff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2a5f9e;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Градиент для подсветки столбцов -->
+    <linearGradient id="barHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6eb5ff;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#4a9eff;stop-opacity:0" />
+    </linearGradient>
+    
+    <!-- Тень для столбцов -->
+    <filter id="barShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.5"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Свечение для столбцов -->
+    <filter id="barGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Фон -->
+  <rect width="800" height="500" fill="url(#bgGradient)"/>
+  
+  <!-- Заголовок -->
+  <text x="400" y="40" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="24" font-weight="600" fill="#e4e6eb" text-anchor="middle">
+    Рейтинг поставщиков
+  </text>
+  
+  <!-- Сетка -->
+  <g opacity="0.2" stroke="#2a2d35" stroke-width="1">
+    <line x1="80" y1="100" x2="80" y2="420"/>
+    <line x1="80" y1="420" x2="750" y2="420"/>
+    <!-- Горизонтальные линии сетки -->
+    <line x1="80" y1="340" x2="750" y2="340"/>
+    <line x1="80" y1="260" x2="750" y2="260"/>
+    <line x1="80" y1="180" x2="750" y2="180"/>
+    <line x1="80" y1="100" x2="750" y2="100"/>
+  </g>
+  
+  <!-- Подписи осей Y -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+     font-size="12" fill="#8b92a4" text-anchor="end">
+    <text x="75" y="425">0</text>
+    <text x="75" y="345">25</text>
+    <text x="75" y="265">50</text>
+    <text x="75" y="185">75</text>
+    <text x="75" y="105">100</text>
+  </g>
+  
+  <!-- Данные для примера (можно заменить на реальные) -->
+  <g id="bars">
+    <!-- Столбец 1 -->
+    <g>
+      <rect x="120" y="280" width="60" height="140" fill="url(#barGradient)" 
+            filter="url(#barShadow)" rx="4" ry="4"/>
+      <rect x="120" y="280" width="60" height="30" fill="url(#barHighlight)" rx="4" ry="4"/>
+      <text x="150" y="270" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" font-weight="600" fill="#4a9eff" text-anchor="middle">85</text>
+      <text x="150" y="440" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" fill="#e4e6eb" text-anchor="middle">Japarts</text>
+    </g>
+    
+    <!-- Столбец 2 -->
+    <g>
+      <rect x="220" y="300" width="60" height="120" fill="url(#barGradient)" 
+            filter="url(#barShadow)" rx="4" ry="4"/>
+      <rect x="220" y="300" width="60" height="25" fill="url(#barHighlight)" rx="4" ry="4"/>
+      <text x="250" y="290" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" font-weight="600" fill="#4a9eff" text-anchor="middle">75</text>
+      <text x="250" y="440" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" fill="#e4e6eb" text-anchor="middle">AVDMotors</text>
+    </g>
+    
+    <!-- Столбец 3 -->
+    <g>
+      <rect x="320" y="200" width="60" height="220" fill="url(#barGradient)" 
+            filter="url(#barShadow)" rx="4" ry="4"/>
+      <rect x="320" y="200" width="60" height="45" fill="url(#barHighlight)" rx="4" ry="4"/>
+      <text x="350" y="190" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" font-weight="600" fill="#4a9eff" text-anchor="middle">95</text>
+      <text x="350" y="440" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" fill="#e4e6eb" text-anchor="middle">Next-auto</text>
+    </g>
+    
+    <!-- Столбец 4 -->
+    <g>
+      <rect x="420" y="320" width="60" height="100" fill="url(#barGradient)" 
+            filter="url(#barShadow)" rx="4" ry="4"/>
+      <rect x="420" y="320" width="60" height="20" fill="url(#barHighlight)" rx="4" ry="4"/>
+      <text x="450" y="310" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" font-weight="600" fill="#4a9eff" text-anchor="middle">62</text>
+      <text x="450" y="440" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" fill="#e4e6eb" text-anchor="middle">Евродеталь</text>
+    </g>
+    
+    <!-- Столбец 5 -->
+    <g>
+      <rect x="520" y="240" width="60" height="180" fill="url(#barGradient)" 
+            filter="url(#barShadow)" rx="4" ry="4"/>
+      <rect x="520" y="240" width="60" height="35" fill="url(#barHighlight)" rx="4" ry="4"/>
+      <text x="550" y="230" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" font-weight="600" fill="#4a9eff" text-anchor="middle">90</text>
+      <text x="550" y="440" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" fill="#e4e6eb" text-anchor="middle">AllAutoParts</text>
+    </g>
+    
+    <!-- Столбец 6 -->
+    <g>
+      <rect x="620" y="360" width="60" height="60" fill="url(#barGradient)" 
+            filter="url(#barShadow)" rx="4" ry="4"/>
+      <rect x="620" y="360" width="60" height="12" fill="url(#barHighlight)" rx="4" ry="4"/>
+      <text x="650" y="350" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" font-weight="600" fill="#4a9eff" text-anchor="middle">38</text>
+      <text x="650" y="440" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+            font-size="12" fill="#e4e6eb" text-anchor="middle">Motex</text>
+    </g>
+  </g>
+  
+  <!-- Декоративное свечение -->
+  <rect x="80" y="100" width="670" height="320" fill="none" stroke="url(#barGradient)" 
+        stroke-width="1" opacity="0.1" rx="8" ry="8"/>
+</svg>
+

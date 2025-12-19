@@ -1,0 +1,102 @@
+<svg viewBox="0 0 800 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .forecast-point {
+        transition: filter 0.3s ease;
+      }
+      @keyframes pointGlow {
+        0%, 100% {
+          filter: brightness(1) drop-shadow(0 0 2px #4a9eff);
+        }
+        50% {
+          filter: brightness(2.5) drop-shadow(0 0 12px #6eb5ff);
+        }
+      }
+    </style>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0b0d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#12141a;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4a9eff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#6eb5ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4a9eff;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a9eff;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#2a5f9e;stop-opacity:0.1" />
+    </linearGradient>
+    
+    <filter id="lineGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="pointGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <rect width="800" height="200" fill="url(#bgGradient)"/>
+  
+  <g opacity="0.2" stroke="#2a2d35" stroke-width="1">
+    <line x1="80" y1="24" x2="80" y2="168"/>
+    <line x1="80" y1="168" x2="750" y2="168"/>
+    <line x1="80" y1="136" x2="750" y2="136"/>
+    <line x1="80" y1="104" x2="750" y2="104"/>
+    <line x1="80" y1="72" x2="750" y2="72"/>
+    <line x1="80" y1="40" x2="750" y2="40"/>
+    <line x1="80" y1="24" x2="750" y2="24"/>
+  </g>
+  
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+     font-size="10" fill="#8b92a4" text-anchor="end">
+    <text x="75" y="172">0</text>
+    <text x="75" y="140">25</text>
+    <text x="75" y="108">50</text>
+    <text x="75" y="76">75</text>
+    <text x="75" y="44">100</text>
+    <text x="75" y="28">100</text>
+  </g>
+  
+  <g id="forecast">
+    <path d="M 120 152 L 200 128 L 280 112 L 360 96 L 440 80 L 520 72 L 600 64 L 680 56" 
+          fill="none" stroke="url(#lineGradient)" stroke-width="3" filter="url(#lineGlow)"/>
+    
+    <path d="M 120 152 L 200 128 L 280 112 L 360 96 L 440 80 L 520 72 L 600 64 L 680 56 L 680 168 L 120 168 Z" 
+          fill="url(#areaGradient)"/>
+    
+    <circle class="forecast-point forecast-point-1" cx="120" cy="152" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-2" cx="200" cy="128" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-3" cx="280" cy="112" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-4" cx="360" cy="96" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-5" cx="440" cy="80" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-6" cx="520" cy="72" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-7" cx="600" cy="64" r="4" fill="#4a9eff" filter="url(#pointGlow)"/>
+    <circle class="forecast-point forecast-point-8" cx="680" cy="56" r="5" fill="#6eb5ff" filter="url(#pointGlow)"/>
+  </g>
+  
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+     font-size="10" fill="#e4e6eb" text-anchor="middle">
+    <text x="120" y="188">Янв</text>
+    <text x="200" y="188">Фев</text>
+    <text x="280" y="188">Мар</text>
+    <text x="360" y="188">Апр</text>
+    <text x="440" y="188">Май</text>
+    <text x="520" y="188">Июн</text>
+    <text x="600" y="188">Июл</text>
+    <text x="680" y="188">Авг</text>
+  </g>
+  
+  <rect x="80" y="24" width="670" height="144" fill="none" stroke="url(#lineGradient)" 
+        stroke-width="1" opacity="0.1" rx="8" ry="8"/>
+</svg>

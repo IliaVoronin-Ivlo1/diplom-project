@@ -1,0 +1,109 @@
+.chartContainer {
+  background: var(--secondary-dark);
+  border-radius: 12px;
+  box-shadow: 
+    var(--shadow-xl),
+    0 0 0 1px rgba(74, 158, 255, 0.1);
+  border: 1px solid var(--border-primary);
+  overflow: hidden;
+  position: relative;
+  animation: card-appear 0.6s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes card-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chartContainer::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, var(--accent-blue), transparent, var(--accent-subtle));
+  border-radius: 12px;
+  z-index: -1;
+  opacity: 0.1;
+  filter: blur(20px);
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.chartHeader {
+  padding: 24px 40px 0;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.chartTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.chartSubtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 20px 0;
+}
+
+.chartContent {
+  padding: 40px;
+  min-height: 500px;
+  height: 500px;
+  position: relative;
+  flex: 1;
+}
+
+.placeholder {
+  text-align: center;
+  opacity: 0.6;
+}
+
+.placeholderText {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.placeholderSubtext {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .chartHeader {
+    padding: 20px 24px 0;
+  }
+
+  .chartContent {
+    padding: 30px 20px;
+    min-height: 400px;
+    height: 400px;
+  }
+
+  .chartTitle {
+    font-size: 18px;
+  }
+}
+

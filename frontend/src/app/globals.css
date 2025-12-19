@@ -1,0 +1,154 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary-dark: #0a0b0d;
+  --secondary-dark: #12141a;
+  --tertiary-dark: #1a1d25;
+  --quaternary-dark: #23262f;
+  --accent-blue: #4a9eff;
+  --accent-light: #6eb5ff;
+  --accent-subtle: #2a5f9e;
+  --text-primary: #e4e6eb;
+  --text-secondary: #8b92a4;
+  --text-tertiary: #5a6070;
+  --error-red: #f04747;
+  --success-green: #43b581;
+  --border-primary: #2a2d35;
+  --border-secondary: #1f2229;
+  --input-bg: #0f1015;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.7);
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.35s ease;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: linear-gradient(180deg, #0a0b0d 0%, #12141a 100%);
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+@keyframes pointGlow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 2px #4a9eff);
+  }
+  50% {
+    filter: brightness(2.5) drop-shadow(0 0 12px #6eb5ff);
+  }
+}
+
+div[data-card-id="price-forecasting"]:hover svg circle.forecast-point-1 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+div[data-card-id="price-forecasting"]:hover svg circle.forecast-point-2 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+div[data-card-id="price-forecasting"]:hover svg circle.forecast-point-3 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+div[data-card-id="price-forecasting"]:hover svg circle.forecast-point-4 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+
+div[data-card-id="price-forecasting"]:hover svg circle.forecast-point-5 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+div[data-card-id="price-forecasting"]:hover svg circle.forecast-point-6 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+div[data-card-id="price-forecasting"]:hover svg circle.forecast-point-7 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+div[data-card-id="price-forecasting"]:hover svg circle.forecast-point-8 {
+  animation: pointGlow 1.6s ease-in-out infinite;
+  animation-delay: 1.4s;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--secondary-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tertiary-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-blue);
+}
+
+@media (max-width: 768px) {
+  html,
+  body {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  html,
+  body {
+    font-size: 13px;
+  }
+}
+
