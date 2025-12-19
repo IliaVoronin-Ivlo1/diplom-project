@@ -31,6 +31,11 @@ class AdminService {
     });
     return response.data;
   }
+
+  async updateUser(userId: number, data: { name?: string; role: string }): Promise<{ success: boolean; data: User }> {
+    const response = await apiClient.put(`/admin/users/${userId}`, data);
+    return response.data;
+  }
 }
 
 export default new AdminService();

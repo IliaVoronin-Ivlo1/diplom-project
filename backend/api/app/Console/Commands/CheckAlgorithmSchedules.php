@@ -67,6 +67,10 @@ class CheckAlgorithmSchedules extends Command
                     Artisan::call('reverse-genetic-algorithm-start');
                     Log::info('CheckAlgorithmSchedules[runAlgorithm]', ['algorithm' => 'reverse_genetic_algorithm', 'status' => 'started']);
                     break;
+                case 'seasonality_analysis':
+                    Artisan::call('seasonality-analysis-start');
+                    Log::info('CheckAlgorithmSchedules[runAlgorithm]', ['algorithm' => 'seasonality_analysis', 'status' => 'started']);
+                    break;
             }
         } catch (\Exception $e) {
             Log::error('CheckAlgorithmSchedules[runAlgorithm]', [

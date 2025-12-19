@@ -10,6 +10,7 @@ use App\Http\Controllers\SupplierOrdersStatisticsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AlgorithmScheduleController;
 use App\Http\Controllers\PriceForecastingController;
+use App\Http\Controllers\AnalysisHistoryController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -50,8 +51,10 @@ Route::middleware('auth:sanctum')->prefix('statistics')->group(function () {
 
 Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(function () {
     Route::get('/users', [AdminController::class, 'getUsers']);
+    Route::put('/users/{userId}', [AdminController::class, 'updateUser']);
     Route::get('/algorithm-schedules', [AlgorithmScheduleController::class, 'getSchedules']);
     Route::put('/algorithm-schedules/{algorithmType}', [AlgorithmScheduleController::class, 'updateSchedule']);
+    Route::get('/analysis-history', [AnalysisHistoryController::class, 'getHistory']);
 });
 
 Route::middleware('auth:sanctum')->prefix('price-forecasting')->group(function () {

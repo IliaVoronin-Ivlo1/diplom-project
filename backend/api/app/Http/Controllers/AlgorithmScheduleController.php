@@ -16,7 +16,8 @@ class AlgorithmScheduleController extends Controller
             $result = [
                 'clustering' => ['hours' => 6, 'minutes' => 1],
                 'genetic_algorithm' => ['hours' => 6, 'minutes' => 1],
-                'reverse_genetic_algorithm' => ['hours' => 6, 'minutes' => 1]
+                'reverse_genetic_algorithm' => ['hours' => 6, 'minutes' => 1],
+                'seasonality_analysis' => ['hours' => 6, 'minutes' => 1]
             ];
 
             foreach ($schedules as $schedule) {

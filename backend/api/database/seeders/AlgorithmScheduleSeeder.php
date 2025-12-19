@@ -24,5 +24,10 @@ class AlgorithmScheduleSeeder extends Seeder
             ['algorithm_type' => 'reverse_genetic_algorithm'],
             ['schedule_hours' => 6, 'schedule_minutes' => 1]
         );
+
+        AlgorithmSchedule::updateOrCreate(
+            ['algorithm_type' => 'seasonality_analysis'],
+            ['schedule_hours' => 6, 'schedule_minutes' => 1]
+        );
     }
 }

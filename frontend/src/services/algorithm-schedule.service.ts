@@ -9,6 +9,7 @@ export interface AlgorithmSchedules {
   clustering: AlgorithmSchedule;
   genetic_algorithm: AlgorithmSchedule;
   reverse_genetic_algorithm: AlgorithmSchedule;
+  seasonality_analysis: AlgorithmSchedule;
 }
 
 class AlgorithmScheduleService {
