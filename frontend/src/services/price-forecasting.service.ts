@@ -34,23 +34,63 @@ export interface ForecastData {
 }
 
 class PriceForecastingService {
+  private articleBrandListCache: { forecasting: ArticleBrand[] | null; seasonality: ArticleBrand[] | null } = {
+    forecasting: null,
+    seasonality: null
+  };
+  
+  private seasonalityDataCache: Map<string, SeasonalityData> = new Map();
+  private forecastDataCache: Map<string, ForecastData> = new Map();
+
+  private getCacheKey(article: string, brand: string): string {
+    return `${article}|${brand}`;
+  }
+
   async getArticleBrandList(type: 'forecasting' | 'seasonality' = 'forecasting'): Promise<ArticleBrand[]> {
+    if (this.articleBrandListCache[type]) {
+      return this.articleBrandListCache[type]!;
+    }
+    
     const response = await apiClient.get(`/price-forecasting/article-brand-list?type=${type}`);
-    return response.data.data || [];
+    const data = response.data.data || [];
+    this.articleBrandListCache[type] = data;
+    return data;
   }
 
   async getSeasonalityData(article: string, brand: string): Promise<SeasonalityData> {
+    const cacheKey = this.getCacheKey(article, brand);
+    
+    if (this.seasonalityDataCache.has(cacheKey)) {
+      return this.seasonalityDataCache.get(cacheKey)!;
+    }
+    
     const encodedArticle = encodeURIComponent(article);
     const encodedBrand = encodeURIComponent(brand);
     const response = await apiClient.get(`/price-forecasting/seasonality/${encodedArticle}/${encodedBrand}`);
-    return response.data.data;
+    const data = response.data.data;
+    this.seasonalityDataCache.set(cacheKey, data);
+    return data;
   }
 
   async getForecastData(article: string, brand: string): Promise<ForecastData> {
+    const cacheKey = this.getCacheKey(article, brand);
+    
+    if (this.forecastDataCache.has(cacheKey)) {
+      return this.forecastDataCache.get(cacheKey)!;
+    }
+    
     const encodedArticle = encodeURIComponent(article);
     const encodedBrand = encodeURIComponent(brand);
     const response = await apiClient.get(`/price-forecasting/forecast/${encodedArticle}/${encodedBrand}`);
-    return response.data.data;
+    const data = response.data.data;
+    this.forecastDataCache.set(cacheKey, data);
+    return data;
+  }
+
+  clearCache(): void {
+    this.articleBrandListCache = { forecasting: null, seasonality: null };
+    this.seasonalityDataCache.clear();
+    this.forecastDataCache.clear();
   }
 }
 

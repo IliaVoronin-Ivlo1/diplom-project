@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import supplierOrdersStatisticsService, { SupplierOrderStat } from '@/services/supplier-orders-statistics.service';
 import styles from './AnalysisStatisticsChart.module.css';
@@ -13,8 +13,12 @@ const COLORS = {
 export default function AnalysisStatisticsChart() {
   const [data, setData] = useState<SupplierOrderStat[]>([]);
   const [loading, setLoading] = useState(true);
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
+    if (hasLoadedRef.current) return;
+    
+    hasLoadedRef.current = true;
     const loadStatistics = async () => {
       try {
         const response = await supplierOrdersStatisticsService.getSupplierOrdersStatistics(10);

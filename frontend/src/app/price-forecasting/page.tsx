@@ -37,7 +37,7 @@ export default function PriceForecastingPage() {
     if (isAuthenticated) {
       loadArticleBrandList();
     }
-  }, [isAuthenticated, activeTab]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (selectedItem && activeTab === 'seasonality') {
@@ -50,6 +50,11 @@ export default function PriceForecastingPage() {
   const loadArticleBrandList = async () => {
     setLoadingList(true);
     try {
+      await Promise.all([
+        priceForecastingService.getArticleBrandList('forecasting'),
+        priceForecastingService.getArticleBrandList('seasonality')
+      ]);
+      
       const list = await priceForecastingService.getArticleBrandList(activeTab);
       setArticleBrandList(list);
       if (list.length > 0 && !selectedItem) {
@@ -91,11 +96,26 @@ export default function PriceForecastingPage() {
     }
   };
 
-  const handleTabChange = (tab: TabType) => {
+  const handleTabChange = async (tab: TabType) => {
     setActiveTab(tab);
-    setSelectedItem(null);
-    setSeasonalityData(null);
-    setForecastData(null);
+    
+    const forecastingList = await priceForecastingService.getArticleBrandList('forecasting');
+    const seasonalityList = await priceForecastingService.getArticleBrandList('seasonality');
+    
+    const list = tab === 'forecasting' ? forecastingList : seasonalityList;
+    setArticleBrandList(list);
+    
+    if (list.length > 0) {
+      const currentItem = list.find(item => 
+        selectedItem && item.article === selectedItem.article && item.brand === selectedItem.brand
+      );
+      const newSelectedItem = currentItem || list[0];
+      setSelectedItem(newSelectedItem);
+    } else {
+      setSelectedItem(null);
+      setSeasonalityData(null);
+      setForecastData(null);
+    }
   };
 
   const handleItemSelect = (item: ArticleBrand) => {
