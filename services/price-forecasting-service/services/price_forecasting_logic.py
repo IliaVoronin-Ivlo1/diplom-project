@@ -7,16 +7,14 @@ import numpy as np
 import pandas as pd
 from prophet import Prophet
 import xgboost as xgb
-import httpx
 from .database import get_db_cursor
 from .connections import get_redis_client
 
 logger = logging.getLogger(__name__)
 
 class PriceForecastingService:
-    def __init__(self, redis_client=None, seasonality_service_url=None):
+    def __init__(self, redis_client=None):
         self.redis_client = redis_client
-        self.seasonality_service_url = seasonality_service_url
     
     def _get_article_brand_combinations(self):
         query = """
@@ -102,23 +100,54 @@ class PriceForecastingService:
     def _get_seasonality_data(self, article, brand):
         cache_key = f"seasonality:{article}:{brand}"
         
-        cached = self.redis_client.get(cache_key)
-        if cached:
-            return json.loads(cached)
+        if self.redis_client:
+            cached = self.redis_client.get(cache_key)
+            if cached:
+                return json.loads(cached)
+        
+        query = """
+            SELECT 
+                sar.monthly_coefficients,
+                sar.quarterly_coefficients,
+                sar.weekly_coefficients,
+                sar.trend,
+                sar.anomalies
+            FROM seasonality_analysis_results sar
+            INNER JOIN analysis_history ah ON sar.history_id = ah.id
+            WHERE sar.article = %s
+              AND sar.brand = %s
+              AND ah.name = 'SEASONALITY_ANALYSIS'
+              AND ah.status = 'SUCCESS'
+            ORDER BY sar.created_at DESC
+            LIMIT 1
+        """
         
         try:
-            response = httpx.get(
-                f"{self.seasonality_service_url}/analyze",
-                params={"article": article, "brand": brand},
-                timeout=30.0
-            )
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('success'):
-                    self.redis_client.setex(cache_key, 86400, json.dumps(data))
+            with get_db_cursor() as cursor:
+                cursor.execute(query, (article, brand))
+                row = cursor.fetchone()
+                
+                if row:
+                    monthly_coeffs = json.loads(row[0]) if row[0] else {}
+                    monthly_coeffs_str = {str(k): v for k, v in monthly_coeffs.items()}
+                    
+                    data = {
+                        'success': True,
+                        'article': article,
+                        'brand': brand,
+                        'monthly_coefficients': monthly_coeffs_str,
+                        'quarterly_coefficients': json.loads(row[1]) if row[1] else None,
+                        'weekly_coefficients': json.loads(row[2]) if row[2] else None,
+                        'trend': json.loads(row[3]) if row[3] else None,
+                        'anomalies': json.loads(row[4]) if row[4] else None
+                    }
+                    
+                    if self.redis_client:
+                        self.redis_client.setex(cache_key, 86400, json.dumps(data))
+                    
                     return data
         except Exception as e:
-            logger.error(f"PriceForecastingService[_get_seasonality_data] Error fetching seasonality: {str(e)}")
+            logger.error(f"PriceForecastingService[_get_seasonality_data] Error fetching seasonality from DB: {str(e)}")
         
         return None
     
@@ -171,7 +200,9 @@ class PriceForecastingService:
                 seasonality_mode='multiplicative',
                 changepoint_prior_scale=0.05,
                 seasonality_prior_scale=10.0,
-                stan_backend='CMDSTANPY'
+                stan_backend='CMDSTANPY',
+                mcmc_samples=0,
+                interval_width=0.8
             )
             logger.info(f"PriceForecastingService[_build_prophet_model] Prophet model created, starting fit...")
             model.fit(df)
@@ -231,10 +262,22 @@ class PriceForecastingService:
         if len(time_series_data) < 30:
             return None
         
+        total_windows = len(time_series_data) - 30
+        logger.info(f"PriceForecastingService[_train_xgboost_corrector] Training XGBoost corrector with {total_windows} windows")
+        
         historical_features = []
         historical_targets = []
         
-        for i in range(30, len(time_series_data)):
+        step = max(1, total_windows // 100)
+        sampled_indices = list(range(30, len(time_series_data), step))
+        if len(sampled_indices) > 100:
+            sampled_indices = sampled_indices[:100]
+        
+        logger.info(f"PriceForecastingService[_train_xgboost_corrector] Using {len(sampled_indices)} windows instead of {total_windows} for faster training")
+        
+        for idx, i in enumerate(sampled_indices):
+            if idx % 20 == 0:
+                logger.info(f"PriceForecastingService[_train_xgboost_corrector] Processing window {idx + 1}/{len(sampled_indices)}")
             window_data = time_series_data.iloc[i-30:i]
             current_date = time_series_data.index[i]
             actual_price = time_series_data.iloc[i]['avg_price']
@@ -244,7 +287,12 @@ class PriceForecastingService:
             window_df = window_df[['ds', 'y']]
             
             try:
-                prophet_model = Prophet()
+                prophet_model = Prophet(
+                    yearly_seasonality=True,
+                    weekly_seasonality=True,
+                    daily_seasonality=False,
+                    changepoint_prior_scale=0.05
+                )
                 prophet_model.fit(window_df)
                 
                 future = prophet_model.make_future_dataframe(periods=1)
@@ -287,10 +335,11 @@ class PriceForecastingService:
         
         try:
             model = xgb.XGBRegressor(
-                n_estimators=100,
-                max_depth=5,
-                learning_rate=0.1,
-                random_state=42
+                n_estimators=50,
+                max_depth=4,
+                learning_rate=0.15,
+                random_state=42,
+                n_jobs=1
             )
             model.fit(X, y)
             return model
@@ -320,7 +369,12 @@ class PriceForecastingService:
             logger.error(f"PriceForecastingService[_forecast_price] Traceback: {traceback.format_exc()}")
             return None
         
-        xgboost_model = self._train_xgboost_corrector(time_series_data, seasonal_data)
+        if len(time_series_data) > 200:
+            logger.info(f"PriceForecastingService[_forecast_price] Training XGBoost corrector for better accuracy")
+            xgboost_model = self._train_xgboost_corrector(time_series_data, seasonal_data)
+        else:
+            logger.info(f"PriceForecastingService[_forecast_price] Skipping XGBoost corrector for faster processing (data points: {len(time_series_data)})")
+            xgboost_model = None
         
         if xgboost_model:
             features = self._prepare_xgboost_features(time_series_data, prophet_forecast.tail(forecast_days), seasonal_data)
@@ -384,6 +438,18 @@ class PriceForecastingService:
     
     def _save_to_database(self, results, history_id):
         if not results:
+            if history_id:
+                try:
+                    with get_db_cursor() as cursor:
+                        status_query = """
+                            UPDATE analysis_history 
+                            SET status = 'FAILED', updated_at = NOW()
+                            WHERE id = %s
+                        """
+                        cursor.execute(status_query, (history_id,))
+                        logger.info(f"PriceForecastingService[_save_to_database] Updated analysis_history status to FAILED for history_id={history_id} (no results)")
+                except Exception as db_error:
+                    logger.error(f"PriceForecastingService[_save_to_database] Failed to update status: {str(db_error)}")
             return
         
         query = """
@@ -406,6 +472,19 @@ class PriceForecastingService:
             except Exception as e:
                 logger.error(f"PriceForecastingService[_save_to_database] Error saving {result['article']}/{result['brand']}: {str(e)}")
                 continue
+        
+        if history_id:
+            try:
+                with get_db_cursor() as cursor:
+                    status_query = """
+                        UPDATE analysis_history 
+                        SET status = 'SUCCESS', updated_at = NOW()
+                        WHERE id = %s
+                    """
+                    cursor.execute(status_query, (history_id,))
+                    logger.info(f"PriceForecastingService[_save_to_database] Updated analysis_history status to SUCCESS for history_id={history_id}")
+            except Exception as db_error:
+                logger.error(f"PriceForecastingService[_save_to_database] Failed to update status: {str(db_error)}")
     
     def forecast_prices(self, history_id=None, forecast_days=30):
         start_time = time.time()
@@ -418,9 +497,11 @@ class PriceForecastingService:
             processed = 0
             failed = 0
             
-            for combination in combinations:
+            for idx, combination in enumerate(combinations, 1):
                 article = combination['article']
                 brand = combination['brand']
+                
+                logger.info(f"PriceForecastingService[forecast_prices] Processing {idx}/{len(combinations)}: article={article}, brand={brand}")
                 
                 try:
                     time_series_raw = self._get_time_series_data(article, brand)
@@ -470,6 +551,20 @@ class PriceForecastingService:
             
         except Exception as e:
             logger.error(f"PriceForecastingService[forecast_prices] Error: {str(e)}")
+            
+            if history_id:
+                try:
+                    with get_db_cursor() as cursor:
+                        status_query = """
+                            UPDATE analysis_history 
+                            SET status = 'FAILED', updated_at = NOW()
+                            WHERE id = %s
+                        """
+                        cursor.execute(status_query, (history_id,))
+                        logger.info(f"PriceForecastingService[forecast_prices] Updated analysis_history status to FAILED for history_id={history_id}")
+                except Exception as db_error:
+                    logger.error(f"PriceForecastingService[forecast_prices] Failed to update status: {str(db_error)}")
+            
             return {
                 'success': False,
                 'error': str(e),

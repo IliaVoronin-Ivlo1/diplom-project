@@ -48,8 +48,7 @@ async def lifespan(app: FastAPI):
     
     try:
         redis_client = get_redis_client()
-        seasonality_service_url = os.getenv('SEASONALITY_SERVICE_URL', 'http://diplom_seasonality_analysis_service:8008')
-        forecasting_service = PriceForecastingService(redis_client, seasonality_service_url)
+        forecasting_service = PriceForecastingService(redis_client)
         logger.info("Main[lifespan] PriceForecastingService initialized")
     except Exception as e:
         logger.error(f"Main[lifespan] Failed to initialize PriceForecastingService: {str(e)}")
@@ -90,16 +89,6 @@ async def root():
         "service": "price-forecasting-service",
         "description": "Сервис прогнозирования цен автозапчастей",
         "status": "running"
-    }
-
-@app.get("/health")
-async def health():
-    redis_status = "connected" if redis_client else "disconnected"
-    db_status = "connected" if db_connection else "disconnected"
-    return {
-        "status": "healthy",
-        "redis": redis_status,
-        "database": db_status
     }
 
 @app.get("/health")
