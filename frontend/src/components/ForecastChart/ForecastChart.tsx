@@ -7,9 +7,10 @@ import styles from './ForecastChart.module.css';
 interface ForecastChartProps {
   data: ForecastData | null;
   loading?: boolean;
+  compact?: boolean;
 }
 
-export default function ForecastChart({ data, loading = false }: ForecastChartProps) {
+export default function ForecastChart({ data, loading = false, compact = false }: ForecastChartProps) {
   if (loading) {
     return (
       <div className={styles.container}>
@@ -37,10 +38,10 @@ export default function ForecastChart({ data, loading = false }: ForecastChartPr
   const metrics = data.accuracy_metrics;
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${compact ? styles.compact : ''}`}>
       <div className={styles.header}>
         <h3 className={styles.title}>Прогноз цен: {data.article}/{data.brand}</h3>
-        {metrics && (
+        {metrics && !compact && (
           <div className={styles.metrics}>
             {metrics.mae && <span className={styles.metric}>MAE: {metrics.mae.toFixed(2)}</span>}
             {metrics.rmse && <span className={styles.metric}>RMSE: {metrics.rmse.toFixed(2)}</span>}
@@ -50,7 +51,7 @@ export default function ForecastChart({ data, loading = false }: ForecastChartPr
       </div>
       
       <div className={styles.chartContent}>
-        <ResponsiveContainer width="100%" height={500}>
+        <ResponsiveContainer width="100%" height={compact ? 300 : 500}>
           <AreaChart data={chartData} margin={{ top: 20, right: 20, bottom: 60, left: 20 }}>
             <defs>
               <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
@@ -86,15 +87,17 @@ export default function ForecastChart({ data, loading = false }: ForecastChartPr
             <Area 
               type="monotone" 
               dataKey="upper" 
-              stroke="none" 
-              fill="rgba(74, 158, 255, 0.1)" 
+              stroke="rgba(74, 158, 255, 0.7)" 
+              strokeWidth={1.5}
+              fill="rgba(74, 158, 255, 0.25)" 
               name="Верхняя граница"
             />
             <Area 
               type="monotone" 
               dataKey="lower" 
-              stroke="none" 
-              fill="rgba(74, 158, 255, 0.1)" 
+              stroke="rgba(74, 158, 255, 0.7)" 
+              strokeWidth={1.5}
+              fill="rgba(74, 158, 255, 0.25)" 
               name="Нижняя граница"
             />
             <Line 

@@ -89,6 +89,16 @@ class PriceForecastingService {
     return data;
   }
 
+  async getAllForecastData(): Promise<ForecastData[]> {
+    const response = await apiClient.get('/price-forecasting/all-forecast-data');
+    const data = response.data.data || [];
+    data.forEach((item: ForecastData) => {
+      const cacheKey = this.getCacheKey(item.article, item.brand);
+      this.forecastDataCache.set(cacheKey, item);
+    });
+    return data;
+  }
+
   clearCache(): void {
     this.articleBrandListCache = { forecasting: null, seasonality: null };
     this.seasonalityDataCache.clear();

@@ -57,3 +57,15 @@
   min-height: 200px;
 }
 
+.compact .header {
+  margin-bottom: 16px;
+}
+
+.compact .title {
+  font-size: 18px;
+}
+
+.compact .chartContent {
+  height: 300px;
+}
+

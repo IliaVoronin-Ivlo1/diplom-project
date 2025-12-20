@@ -37,12 +37,13 @@ class PriceForecastingController extends Controller
                     ->orderBy('brand')
                     ->get();
             } else {
-                $history = AnalysisHistory::where('name', AnalysisHistory::NAME_PRICE_FORECASTING)
-                    ->where('status', 'SUCCESS')
-                    ->latest()
-                    ->first();
+                $historyId = DB::table('price_forecasting_results')
+                    ->select('history_id')
+                    ->distinct()
+                    ->orderBy('history_id', 'desc')
+                    ->value('history_id');
                 
-                if (!$history) {
+                if (!$historyId) {
                     return response()->json([
                         'success' => true,
                         'data' => []
@@ -50,7 +51,7 @@ class PriceForecastingController extends Controller
                 }
                 
                 $results = DB::table('price_forecasting_results')
-                    ->where('history_id', $history->id)
+                    ->where('history_id', $historyId)
                     ->select('article', 'brand')
                     ->distinct()
                     ->orderBy('article')
@@ -147,12 +148,13 @@ class PriceForecastingController extends Controller
             $article = $request->input('article');
             $brand = $request->input('brand');
             
-            $history = AnalysisHistory::where('name', AnalysisHistory::NAME_PRICE_FORECASTING)
-                ->where('status', 'SUCCESS')
-                ->latest()
-                ->first();
+            $historyId = DB::table('price_forecasting_results')
+                ->select('history_id')
+                ->distinct()
+                ->orderBy('history_id', 'desc')
+                ->value('history_id');
             
-            if (!$history) {
+            if (!$historyId) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Данные прогнозирования не найдены'
@@ -160,7 +162,7 @@ class PriceForecastingController extends Controller
             }
             
             $result = DB::table('price_forecasting_results')
-                ->where('history_id', $history->id)
+                ->where('history_id', $historyId)
                 ->where('article', $article)
                 ->where('brand', $brand)
                 ->first();
@@ -184,6 +186,56 @@ class PriceForecastingController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error("PriceForecastingController[getForecastData]", [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка при получении данных прогнозирования: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getAllForecastData(Request $request)
+    {
+        try {
+            $historyId = DB::table('price_forecasting_results')
+                ->select('history_id')
+                ->distinct()
+                ->orderBy('history_id', 'desc')
+                ->value('history_id');
+            
+            if (!$historyId) {
+                return response()->json([
+                    'success' => true,
+                    'data' => []
+                ]);
+            }
+            
+            $results = DB::table('price_forecasting_results')
+                ->where('history_id', $historyId)
+                ->orderBy('article')
+                ->orderBy('brand')
+                ->get();
+            
+            $data = $results->map(function ($result) {
+                return [
+                    'article' => $result->article,
+                    'brand' => $result->brand,
+                    'forecast_data' => json_decode($result->forecast_data, true),
+                    'accuracy_metrics' => $result->accuracy_metrics ? json_decode($result->accuracy_metrics, true) : null,
+                    'model_info' => $result->model_info ? json_decode($result->model_info, true) : null
+                ];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            Log::error("PriceForecastingController[getAllForecastData]", [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),

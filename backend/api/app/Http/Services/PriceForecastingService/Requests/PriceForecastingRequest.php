@@ -19,7 +19,7 @@ class PriceForecastingRequest
     public function sendRequest(int $forecastDays, ?int $historyId): array
     {
         try {
-            $response = Http::get($this->serviceUrl . '/forecast', [
+            $response = Http::timeout(86400)->get($this->serviceUrl . '/forecast', [
                 'history_id' => $historyId,
                 'forecast_days' => $forecastDays
             ]);

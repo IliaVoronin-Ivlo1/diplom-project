@@ -17,8 +17,10 @@ export default function PriceForecastingPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('forecasting');
-  const [articleBrandList, setArticleBrandList] = useState<ArticleBrand[]>([]);
-  const [selectedItem, setSelectedItem] = useState<ArticleBrand | null>(null);
+  const [forecastingList, setForecastingList] = useState<ArticleBrand[]>([]);
+  const [seasonalityList, setSeasonalityList] = useState<ArticleBrand[]>([]);
+  const [selectedForecastingItem, setSelectedForecastingItem] = useState<ArticleBrand | null>(null);
+  const [selectedSeasonalityItem, setSelectedSeasonalityItem] = useState<ArticleBrand | null>(null);
   const [seasonalityData, setSeasonalityData] = useState<SeasonalityData | null>(null);
   const [forecastData, setForecastData] = useState<ForecastData | null>(null);
   const [loadingList, setLoadingList] = useState(false);
@@ -35,44 +37,89 @@ export default function PriceForecastingPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      loadArticleBrandList();
+      loadForecastingList();
+      loadSeasonalityList();
     }
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (selectedItem && activeTab === 'seasonality') {
-      loadSeasonalityData();
-    } else if (selectedItem && activeTab === 'forecasting') {
-      loadForecastData();
+    if (activeTab === 'forecasting') {
+      loadForecastingList();
+    } else {
+      loadSeasonalityList();
     }
-  }, [selectedItem, activeTab]);
+  }, [activeTab]);
 
-  const loadArticleBrandList = async () => {
+  useEffect(() => {
+    if (selectedSeasonalityItem && activeTab === 'seasonality') {
+      loadSeasonalityData();
+    }
+  }, [selectedSeasonalityItem, activeTab]);
+
+  useEffect(() => {
+    if (selectedForecastingItem && activeTab === 'forecasting') {
+      loadForecastData();
+    } else if (activeTab === 'forecasting' && !selectedForecastingItem) {
+      setForecastData(null);
+    }
+  }, [selectedForecastingItem, activeTab]);
+
+  const loadForecastingList = async () => {
     setLoadingList(true);
     try {
-      await Promise.all([
-        priceForecastingService.getArticleBrandList('forecasting'),
-        priceForecastingService.getArticleBrandList('seasonality')
-      ]);
-      
-      const list = await priceForecastingService.getArticleBrandList(activeTab);
-      setArticleBrandList(list);
-      if (list.length > 0 && !selectedItem) {
-        setSelectedItem(list[0]);
+      const list = await priceForecastingService.getArticleBrandList('forecasting');
+      setForecastingList(list);
+      if (list.length > 0) {
+        const firstItem = list[0];
+        setSelectedForecastingItem(firstItem);
+      } else {
+        setSelectedForecastingItem(null);
+        setForecastData(null);
       }
     } catch (error) {
-      console.error('Error loading article brand list:', error);
-      setArticleBrandList([]);
+      console.error('Error loading forecasting list:', error);
+      setForecastingList([]);
+      setSelectedForecastingItem(null);
+      setForecastData(null);
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
+  const loadForecastDataForItem = async (item: ArticleBrand) => {
+    setLoadingData(true);
+    try {
+      const data = await priceForecastingService.getForecastData(item.article, item.brand);
+      setForecastData(data);
+    } catch (error) {
+      console.error('Error loading forecast data:', error);
+      setForecastData(null);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  const loadSeasonalityList = async () => {
+    setLoadingList(true);
+    try {
+      const list = await priceForecastingService.getArticleBrandList('seasonality');
+      setSeasonalityList(list);
+      if (list.length > 0 && !selectedSeasonalityItem) {
+        setSelectedSeasonalityItem(list[0]);
+      }
+    } catch (error) {
+      console.error('Error loading seasonality list:', error);
+      setSeasonalityList([]);
     } finally {
       setLoadingList(false);
     }
   };
 
   const loadSeasonalityData = async () => {
-    if (!selectedItem) return;
+    if (!selectedSeasonalityItem) return;
     setLoadingData(true);
     try {
-      const data = await priceForecastingService.getSeasonalityData(selectedItem.article, selectedItem.brand);
+      const data = await priceForecastingService.getSeasonalityData(selectedSeasonalityItem.article, selectedSeasonalityItem.brand);
       setSeasonalityData(data);
     } catch (error) {
       console.error('Error loading seasonality data:', error);
@@ -83,43 +130,28 @@ export default function PriceForecastingPage() {
   };
 
   const loadForecastData = async () => {
-    if (!selectedItem) return;
-    setLoadingData(true);
-    try {
-      const data = await priceForecastingService.getForecastData(selectedItem.article, selectedItem.brand);
-      setForecastData(data);
-    } catch (error) {
-      console.error('Error loading forecast data:', error);
-      setForecastData(null);
-    } finally {
-      setLoadingData(false);
-    }
+    if (!selectedForecastingItem) return;
+    await loadForecastDataForItem(selectedForecastingItem);
   };
+
 
   const handleTabChange = async (tab: TabType) => {
     setActiveTab(tab);
-    
-    const forecastingList = await priceForecastingService.getArticleBrandList('forecasting');
-    const seasonalityList = await priceForecastingService.getArticleBrandList('seasonality');
-    
-    const list = tab === 'forecasting' ? forecastingList : seasonalityList;
-    setArticleBrandList(list);
-    
-    if (list.length > 0) {
-      const currentItem = list.find(item => 
-        selectedItem && item.article === selectedItem.article && item.brand === selectedItem.brand
-      );
-      const newSelectedItem = currentItem || list[0];
-      setSelectedItem(newSelectedItem);
+    setSeasonalityData(null);
+    setForecastData(null);
+    if (tab === 'forecasting') {
+      await loadForecastingList();
     } else {
-      setSelectedItem(null);
-      setSeasonalityData(null);
-      setForecastData(null);
+      await loadSeasonalityList();
     }
   };
 
-  const handleItemSelect = (item: ArticleBrand) => {
-    setSelectedItem(item);
+  const handleForecastingItemSelect = (item: ArticleBrand) => {
+    setSelectedForecastingItem(item);
+  };
+
+  const handleSeasonalityItemSelect = (item: ArticleBrand) => {
+    setSelectedSeasonalityItem(item);
   };
 
   if (isAuthenticated === null) {
@@ -153,20 +185,33 @@ export default function PriceForecastingPage() {
         </div>
 
         <div className={styles.mainContent}>
-          <ArticleBrandSidebar
-            items={articleBrandList}
-            selectedItem={selectedItem}
-            onItemSelect={handleItemSelect}
-            loading={loadingList}
-          />
-          
-          <div className={styles.chartContainer}>
-            {activeTab === 'seasonality' ? (
-              <SeasonalityChart data={seasonalityData} loading={loadingData} />
-            ) : (
-              <ForecastChart data={forecastData} loading={loadingData} />
-            )}
-          </div>
+          {activeTab === 'forecasting' ? (
+            <>
+              <ArticleBrandSidebar
+                items={forecastingList}
+                selectedItem={selectedForecastingItem}
+                onItemSelect={handleForecastingItemSelect}
+                loading={loadingList}
+              />
+              
+              <div className={styles.chartContainer}>
+                <ForecastChart data={forecastData} loading={loadingData} />
+              </div>
+            </>
+          ) : (
+            <>
+              <ArticleBrandSidebar
+                items={seasonalityList}
+                selectedItem={selectedSeasonalityItem}
+                onItemSelect={handleSeasonalityItemSelect}
+                loading={loadingList}
+              />
+              
+              <div className={styles.chartContainer}>
+                <SeasonalityChart data={seasonalityData} loading={loadingData} />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -436,55 +436,43 @@ class PriceForecastingService:
             'rmse': float(rmse)
         }
     
-    def _save_to_database(self, results, history_id):
-        if not results:
-            if history_id:
-                try:
-                    with get_db_cursor() as cursor:
-                        status_query = """
-                            UPDATE analysis_history 
-                            SET status = 'FAILED', updated_at = NOW()
-                            WHERE id = %s
-                        """
-                        cursor.execute(status_query, (history_id,))
-                        logger.info(f"PriceForecastingService[_save_to_database] Updated analysis_history status to FAILED for history_id={history_id} (no results)")
-                except Exception as db_error:
-                    logger.error(f"PriceForecastingService[_save_to_database] Failed to update status: {str(db_error)}")
-            return
-        
+    def _save_pair_to_database(self, result, history_id):
         query = """
             INSERT INTO price_forecasting_results 
             (history_id, article, brand, forecast_data, accuracy_metrics, model_info, created_at, updated_at)
             VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
         """
         
-        for result in results:
-            try:
-                with get_db_cursor() as cursor:
-                    cursor.execute(query, (
-                        history_id,
-                        result['article'],
-                        result['brand'],
-                        json.dumps(result['forecast_data']),
-                        json.dumps(result['accuracy_metrics']) if result['accuracy_metrics'] else None,
-                        json.dumps(result['model_info'])
-                    ))
-            except Exception as e:
-                logger.error(f"PriceForecastingService[_save_to_database] Error saving {result['article']}/{result['brand']}: {str(e)}")
-                continue
+        try:
+            with get_db_cursor() as cursor:
+                cursor.execute(query, (
+                    history_id,
+                    result['article'],
+                    result['brand'],
+                    json.dumps(result['forecast_data']),
+                    json.dumps(result['accuracy_metrics']) if result['accuracy_metrics'] else None,
+                    json.dumps(result['model_info'])
+                ))
+                logger.info(f"PriceForecastingService[_save_pair_to_database] Saved result for article={result['article']}, brand={result['brand']}")
+        except Exception as e:
+            logger.error(f"PriceForecastingService[_save_pair_to_database] Error saving {result['article']}/{result['brand']}: {str(e)}")
+            raise
+    
+    def _update_history_status(self, history_id, status):
+        if not history_id:
+            return
         
-        if history_id:
-            try:
-                with get_db_cursor() as cursor:
-                    status_query = """
-                        UPDATE analysis_history 
-                        SET status = 'SUCCESS', updated_at = NOW()
-                        WHERE id = %s
-                    """
-                    cursor.execute(status_query, (history_id,))
-                    logger.info(f"PriceForecastingService[_save_to_database] Updated analysis_history status to SUCCESS for history_id={history_id}")
-            except Exception as db_error:
-                logger.error(f"PriceForecastingService[_save_to_database] Failed to update status: {str(db_error)}")
+        try:
+            with get_db_cursor() as cursor:
+                status_query = """
+                    UPDATE analysis_history 
+                    SET status = %s, updated_at = NOW()
+                    WHERE id = %s
+                """
+                cursor.execute(status_query, (status, history_id))
+                logger.info(f"PriceForecastingService[_update_history_status] Updated analysis_history status to {status} for history_id={history_id}")
+        except Exception as db_error:
+            logger.error(f"PriceForecastingService[_update_history_status] Failed to update status: {str(db_error)}")
     
     def forecast_prices(self, history_id=None, forecast_days=30):
         start_time = time.time()
@@ -493,7 +481,6 @@ class PriceForecastingService:
             combinations = self._get_article_brand_combinations()
             logger.info(f"PriceForecastingService[forecast_prices] Found {len(combinations)} combinations")
             
-            results = []
             processed = 0
             failed = 0
             
@@ -523,7 +510,10 @@ class PriceForecastingService:
                         'brand': brand,
                         **forecast_result
                     }
-                    results.append(result)
+                    
+                    if history_id:
+                        self._save_pair_to_database(result, history_id)
+                    
                     processed += 1
                     
                     if processed % 10 == 0:
@@ -534,8 +524,11 @@ class PriceForecastingService:
                     failed += 1
                     continue
             
-            if history_id and results:
-                self._save_to_database(results, history_id)
+            if history_id:
+                if processed > 0:
+                    self._update_history_status(history_id, 'SUCCESS')
+                else:
+                    self._update_history_status(history_id, 'FAILED')
             
             execution_time = round(time.time() - start_time, 2)
             
@@ -544,7 +537,7 @@ class PriceForecastingService:
                 'processed': processed,
                 'failed': failed,
                 'total': len(combinations),
-                'results_count': len(results),
+                'results_count': processed,
                 'execution_time': execution_time,
                 'timestamp': datetime.utcnow().isoformat() + 'Z'
             }
@@ -553,17 +546,7 @@ class PriceForecastingService:
             logger.error(f"PriceForecastingService[forecast_prices] Error: {str(e)}")
             
             if history_id:
-                try:
-                    with get_db_cursor() as cursor:
-                        status_query = """
-                            UPDATE analysis_history 
-                            SET status = 'FAILED', updated_at = NOW()
-                            WHERE id = %s
-                        """
-                        cursor.execute(status_query, (history_id,))
-                        logger.info(f"PriceForecastingService[forecast_prices] Updated analysis_history status to FAILED for history_id={history_id}")
-                except Exception as db_error:
-                    logger.error(f"PriceForecastingService[forecast_prices] Failed to update status: {str(db_error)}")
+                self._update_history_status(history_id, 'FAILED')
             
             return {
                 'success': False,

@@ -36,11 +36,6 @@ class PriceForecasting implements ShouldQueue
             $forecastingService = app(PriceForecastingServiceInterface::class);
             $result = $forecastingService->startPriceForecastingRequest($this->forecastDays, $this->historyId);
             Log::info("PriceForecasting[handle]", ['result' => $result]);
-
-            if ($history) {
-                $history->status = AnalysisHistory::STATUS_SUCCESS;
-                $history->save();
-            }
         } catch (\Exception $e) {
             Log::error("PriceForecasting[handle]", [
                 'error' => $e->getMessage(),

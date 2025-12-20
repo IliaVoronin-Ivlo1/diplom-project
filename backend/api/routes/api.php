@@ -61,5 +61,6 @@ Route::middleware('auth:sanctum')->prefix('price-forecasting')->group(function (
     Route::get('/article-brand-list', [PriceForecastingController::class, 'getArticleBrandList']);
     Route::post('/seasonality', [PriceForecastingController::class, 'getSeasonalityData']);
     Route::post('/forecast', [PriceForecastingController::class, 'getForecastData']);
+    Route::get('/all-forecast-data', [PriceForecastingController::class, 'getAllForecastData']);
 });
 
