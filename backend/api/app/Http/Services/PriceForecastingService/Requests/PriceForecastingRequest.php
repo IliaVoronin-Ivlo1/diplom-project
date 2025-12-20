@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Http\Services\PriceForecastingService\Exceptions\PriceForecastingServiceConnectionException;
 use App\Http\Services\PriceForecastingService\Exceptions\PriceForecastingServiceException;
+use Illuminate\Http\Client\ConnectionException;
 
 class PriceForecastingRequest
 {
@@ -34,7 +35,7 @@ class PriceForecastingRequest
 
             return $response->json();
 
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+        } catch (ConnectionException $e) {
             Log::error("PriceForecastingRequest[sendRequest]", [
                 'error' => 'Connection error',
                 'message' => $e->getMessage()
