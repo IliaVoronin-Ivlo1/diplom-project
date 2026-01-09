@@ -1,5 +1,16 @@
-# Архитектура проекта
+![login-page](https://github.com/user-attachments/assets/2a15b089-2301-4a81-a8c0-d948eb197a53)
+![profile](https://github.com/user-attachments/assets/12a18933-cf78-4db2-9a4b-7c43d10be3b4)
+![main-page-1](https://github.com/user-attachments/assets/a8073155-5c4c-47fb-a7fa-f7ceeaac26c7)
+![main-page-2](https://github.com/user-attachments/assets/b4cab16d-792e-46a2-a80f-74579d28ec6b)
+![supliers-rating](https://github.com/user-attachments/assets/0687d873-6f41-494d-a393-062a2f79f163)
+![detail-rating](https://github.com/user-attachments/assets/ab4d1ade-6583-4199-b565-24c55995c4d5)
+![mounthly-trends](https://github.com/user-attachments/assets/808c0d62-6d75-494c-911e-45a2a6e5ac19)
+![price-forecast](https://github.com/user-attachments/assets/ffa9e734-6859-4657-92f3-d554f38a1b70)
+![clusterisations](https://github.com/user-attachments/assets/2cc091a4-13d7-45d6-a51f-192f68e54879)
+![admin-panel-1](https://github.com/user-attachments/assets/bc1efb67-3bf4-4cdf-89b2-4d9e706eff62)
+![admin-panel-2](https://github.com/user-attachments/assets/4a38ae75-d842-404a-aa75-74853d2e7108)
 
+# Архитектура проекта
 ## Общая схема
 
 Проект построен на микросервисной архитектуре с использованием Docker контейнеров. Все сервисы изолированы и общаются между собой через выделенную Docker bridge сеть.
