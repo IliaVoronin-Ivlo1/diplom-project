@@ -2,6 +2,8 @@
 
 import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTheme } from '@/contexts/ThemeContext';
+import { HiLightBulb, HiOutlineLightBulb } from 'react-icons/hi';
 import authService from '@/services/auth.service';
 import profileService from '@/services/profile.service';
 import { LoginRequest, RegisterRequest, ValidationError } from '@/models/auth.model';
@@ -18,6 +20,7 @@ type FormMode = 'login' | 'register';
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { theme, toggleTheme } = useTheme();
   const [mode, setMode] = useState<FormMode>('login');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -199,6 +202,14 @@ export default function LoginPage() {
   return (
     <div className={styles.container}>
       <AnimatedBackground />
+      
+      <button 
+        className={styles.themeButton} 
+        onClick={toggleTheme} 
+        title={theme === 'dark' ? 'Включить светлую тему' : 'Включить темную тему'}
+      >
+        {theme === 'dark' ? <HiOutlineLightBulb /> : <HiLightBulb />}
+      </button>
       
       <div className={styles.formWrapper}>
         <div className={styles.logoContainer}>

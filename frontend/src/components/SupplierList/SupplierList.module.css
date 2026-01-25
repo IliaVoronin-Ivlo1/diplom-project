@@ -67,6 +67,14 @@
   margin: 0 0 20px 0;
 }
 
+.searchWrapper {
+  margin-top: 16px;
+}
+
+.search {
+  width: 100%;
+}
+
 .content {
   flex: 1;
   overflow-y: auto;

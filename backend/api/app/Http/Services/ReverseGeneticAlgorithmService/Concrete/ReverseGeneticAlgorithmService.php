@@ -37,7 +37,6 @@ class ReverseGeneticAlgorithmService implements ReverseGeneticAlgorithmServiceIn
             $allArticleBrandsRanking = DB::table('reverse_genetic_algorithm_article_brand_rankings')
                 ->where('run_id', $latestRun->id)
                 ->orderBy('rank')
-                ->limit(20)
                 ->select('article', 'brand', 'fitness_score', 'rank',
                          'avg_price', 'success_rate', 'avg_delivery_time', 'denial_rate',
                          'orders_count', 'total_revenue')
@@ -69,7 +68,6 @@ class ReverseGeneticAlgorithmService implements ReverseGeneticAlgorithmServiceIn
                 $bestSuppliers = DB::table('reverse_genetic_algorithm_supplier_rankings')
                     ->where('article_brand_ranking_id', $bestArticleBrand->id)
                     ->orderBy('rank')
-                    ->limit(10)
                     ->select('supplier_id', 'service_name', 'supplier_name', 'fitness_score', 'rank',
                              'avg_price', 'success_rate', 'avg_delivery_time', 'denial_rate',
                              'orders_count', 'total_revenue')
@@ -110,7 +108,6 @@ class ReverseGeneticAlgorithmService implements ReverseGeneticAlgorithmServiceIn
             
             $articleBrandRankingIds = DB::table('reverse_genetic_algorithm_article_brand_rankings')
                 ->where('run_id', $latestRun->id)
-                ->limit(20)
                 ->pluck('id')
                 ->toArray();
             
@@ -128,7 +125,6 @@ class ReverseGeneticAlgorithmService implements ReverseGeneticAlgorithmServiceIn
                 $suppliers = DB::table('reverse_genetic_algorithm_supplier_rankings')
                     ->where('article_brand_ranking_id', $articleBrandRankingId)
                     ->orderBy('rank')
-                    ->limit(10)
                     ->select('supplier_id', 'service_name', 'supplier_name', 'fitness_score', 'rank',
                              'avg_price', 'success_rate', 'avg_delivery_time', 'denial_rate',
                              'orders_count', 'total_revenue')
@@ -213,7 +209,6 @@ class ReverseGeneticAlgorithmService implements ReverseGeneticAlgorithmServiceIn
             $suppliers = DB::table('reverse_genetic_algorithm_supplier_rankings')
                 ->where('article_brand_ranking_id', $articleBrandRanking->id)
                 ->orderBy('rank')
-                ->limit(10)
                 ->select('supplier_id', 'service_name', 'supplier_name', 'fitness_score', 'rank',
                          'avg_price', 'success_rate', 'avg_delivery_time', 'denial_rate',
                          'orders_count', 'total_revenue')

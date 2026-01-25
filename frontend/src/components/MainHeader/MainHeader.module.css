@@ -48,6 +48,10 @@
   animation: letter-glow-small 3s ease-in-out infinite;
 }
 
+[data-theme="light"] .logoIcon::before {
+  color: #ffffff;
+}
+
 @keyframes letter-glow-small {
   0%, 100% {
     filter: drop-shadow(0 0 2px rgba(10, 11, 13, 0.5));
@@ -61,6 +65,47 @@
   font-size: 24px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.themeButton {
+  width: 48px;
+  height: 48px;
+  background: var(--secondary-dark);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.themeButton:hover {
+  background: var(--tertiary-dark);
+  border-color: var(--accent-blue);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+}
+
+.themeButton svg {
+  width: 24px;
+  height: 24px;
+  transition: transform var(--transition-normal);
+  position: relative;
+  z-index: 1;
+}
+
+.themeButton:hover svg {
+  transform: scale(1.1) rotate(15deg);
 }
 
 .profileButton {
@@ -124,6 +169,16 @@
 
   .logoText {
     font-size: 18px;
+  }
+
+  .themeButton {
+    width: 40px;
+    height: 40px;
+  }
+
+  .themeButton svg {
+    width: 20px;
+    height: 20px;
   }
 
   .profileButton {

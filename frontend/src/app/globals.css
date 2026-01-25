@@ -20,6 +20,7 @@
   --border-primary: #2a2d35;
   --border-secondary: #1f2229;
   --input-bg: #0f1015;
+  --chart-container-bg: #0f1114;
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.6);
@@ -27,6 +28,29 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
   --transition-slow: 0.35s ease;
+}
+
+[data-theme="light"] {
+  --primary-dark: #e8eaed;
+  --secondary-dark: #f1f3f5;
+  --tertiary-dark: #dfe1e4;
+  --quaternary-dark: #d3d6da;
+  --accent-blue: #4a9eff;
+  --accent-light: #6eb5ff;
+  --accent-subtle: #2a5f9e;
+  --text-primary: #3a4a5c;
+  --text-secondary: #6b7a8a;
+  --text-tertiary: #9aa5b0;
+  --error-red: #d32f2f;
+  --success-green: #2e7d32;
+  --border-primary: #d0d3d7;
+  --border-secondary: #e1e4e8;
+  --input-bg: #ffffff;
+  --chart-container-bg: #d6d9dd;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 html,
@@ -40,6 +64,12 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="light"] html,
+[data-theme="light"] body {
+  background: linear-gradient(180deg, #e8eaed 0%, #dfe1e4 100%);
 }
 
 body {
@@ -136,6 +166,47 @@ input:-webkit-autofill:active {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-blue);
+}
+
+[data-theme="light"] input:-webkit-autofill,
+[data-theme="light"] input:-webkit-autofill:hover,
+[data-theme="light"] input:-webkit-autofill:focus,
+[data-theme="light"] input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+.recharts-wrapper,
+.recharts-surface {
+  background-color: transparent !important;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--border-primary) !important;
+  opacity: 0.3 !important;
+}
+
+.recharts-text {
+  fill: var(--text-secondary) !important;
+}
+
+.recharts-legend-wrapper {
+  color: var(--text-primary) !important;
+}
+
+.recharts-tooltip-wrapper {
+  background-color: var(--secondary-dark) !important;
+  border: 1px solid var(--border-primary) !important;
+  border-radius: 8px !important;
+}
+
+.recharts-tooltip-label {
+  color: var(--text-primary) !important;
+}
+
+.recharts-tooltip-item {
+  color: var(--text-primary) !important;
 }
 
 @media (max-width: 768px) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { ArticleBrand } from '@/services/reverse-genetic-algorithm.service';
+import SearchableDropdown from '@/components/SearchableDropdown/SearchableDropdown';
 import styles from './ArticleBrandList.module.css';
 
 interface ArticleBrandListProps {
@@ -54,6 +55,16 @@ export default function ArticleBrandList({
       <div className={styles.header}>
         <h3 className={styles.title}>Рейтинг автозапчастей</h3>
         <p className={styles.subtitle}>От лучшей к худшей</p>
+        <div className={styles.searchWrapper}>
+          <SearchableDropdown
+            items={articleBrands}
+            selectedItem={null}
+            onSelect={onArticleBrandSelect}
+            getDisplayText={(articleBrand) => `${articleBrand.article} × ${articleBrand.brand}`}
+            placeholder="Поиск автозапчасти..."
+            className={styles.search}
+          />
+        </div>
       </div>
       <div className={styles.content}>
         <div className={styles.list}>

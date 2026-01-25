@@ -4,9 +4,41 @@
   align-items: center;
   min-height: 100vh;
   padding: 20px;
-  background: linear-gradient(180deg, #0a0b0d 0%, #12141a 100%);
+  background: linear-gradient(180deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
   position: relative;
   overflow: hidden;
+}
+
+.themeButton {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  background: var(--secondary-dark);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  z-index: 100;
+}
+
+.themeButton:hover {
+  background: var(--tertiary-dark);
+  border-color: var(--accent-blue);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.themeButton svg {
+  width: 20px;
+  height: 20px;
+  color: var(--text-primary);
+  transition: color var(--transition-normal);
 }
 
 .container::before {
@@ -606,6 +638,18 @@
 @media (max-width: 480px) {
   .container {
     padding: 16px;
+  }
+
+  .themeButton {
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .themeButton svg {
+    width: 18px;
+    height: 18px;
   }
 
   .formWrapper {

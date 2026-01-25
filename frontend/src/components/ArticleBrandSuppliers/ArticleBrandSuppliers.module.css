@@ -46,6 +46,33 @@
   margin: 4px 0 0 0;
 }
 
+.searchWrapper {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-secondary);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all var(--transition-normal);
+  outline: none;
+}
+
+.searchInput:focus {
+  border-color: var(--accent-blue);
+  background: var(--tertiary-dark);
+  box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+}
+
+.searchInput::placeholder {
+  color: var(--text-tertiary);
+}
+
 .content {
   padding: 24px 40px;
   overflow-y: auto;

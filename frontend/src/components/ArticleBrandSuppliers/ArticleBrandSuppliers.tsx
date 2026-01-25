@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Supplier } from '@/services/reverse-genetic-algorithm.service';
 import styles from './ArticleBrandSuppliers.module.css';
 
@@ -10,6 +11,15 @@ interface ArticleBrandSuppliersProps {
 }
 
 export default function ArticleBrandSuppliers({ suppliers, articleBrand, loading = false }: ArticleBrandSuppliersProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredSuppliers = suppliers.filter(supplier => {
+    const searchLower = searchTerm.toLowerCase();
+    const serviceName = (supplier.service_name || '').toLowerCase();
+    const supplierName = (supplier.supplier_name || '').toLowerCase();
+    return serviceName.includes(searchLower) || supplierName.includes(searchLower);
+  });
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -47,10 +57,24 @@ export default function ArticleBrandSuppliers({ suppliers, articleBrand, loading
       <div className={styles.header}>
         <h3 className={styles.title}>Топ поставщиков</h3>
         <p className={styles.subtitle}>{articleBrand.article} × {articleBrand.brand}</p>
+        <div className={styles.searchWrapper}>
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder="Поиск поставщика..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
       <div className={styles.content}>
         <div className={styles.list}>
-          {suppliers.map((supplier, index) => (
+          {filteredSuppliers.length === 0 ? (
+            <div className={styles.placeholder}>
+              <p className={styles.placeholderText}>Ничего не найдено</p>
+            </div>
+          ) : (
+            filteredSuppliers.map((supplier, index) => (
             <div key={`${supplier.supplier_id}-${index}`} className={styles.supplierItem}>
               <div className={styles.rank}>
                 <span className={styles.rankNumber}>{index + 1}</span>
@@ -81,7 +105,8 @@ export default function ArticleBrandSuppliers({ suppliers, articleBrand, loading
                 )}
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

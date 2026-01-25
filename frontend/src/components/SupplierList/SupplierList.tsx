@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Supplier } from '@/services/genetic-algorithm.service';
+import SearchableDropdown from '@/components/SearchableDropdown/SearchableDropdown';
 import styles from './SupplierList.module.css';
 
 interface SupplierListProps {
@@ -55,6 +56,16 @@ export default function SupplierList({
       <div className={styles.header}>
         <h3 className={styles.title}>Рейтинг поставщиков</h3>
         <p className={styles.subtitle}>От лучшего к худшему</p>
+        <div className={styles.searchWrapper}>
+          <SearchableDropdown
+            items={suppliers}
+            selectedItem={null}
+            onSelect={onSupplierSelect}
+            getDisplayText={(supplier) => supplier.service_name || supplier.name}
+            placeholder="Поиск поставщика..."
+            className={styles.search}
+          />
+        </div>
       </div>
       <div className={styles.content}>
         <div className={styles.list}>

@@ -78,7 +78,7 @@
   height: 250px;
   position: relative;
   overflow: hidden;
-  background: var(--tertiary-dark);
+  background: var(--chart-container-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -289,6 +289,7 @@
   color: var(--text-primary);
   text-align: center;
   border-top: 1px solid var(--border-primary);
+  background: var(--chart-container-bg);
 }
 
 @media (max-width: 1024px) {

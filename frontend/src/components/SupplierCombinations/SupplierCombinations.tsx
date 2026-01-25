@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ArticleBrandCombination } from '@/services/genetic-algorithm.service';
 import styles from './SupplierCombinations.module.css';
 
@@ -11,6 +12,16 @@ interface SupplierCombinationsProps {
 }
 
 export default function SupplierCombinations({ combinations, supplierName, onClose, loading = false }: SupplierCombinationsProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredCombinations = combinations.filter(combination => {
+    const searchLower = searchTerm.toLowerCase();
+    const articleLower = combination.article.toLowerCase();
+    const brandLower = combination.brand.toLowerCase();
+    const fullText = `${combination.article} × ${combination.brand}`.toLowerCase();
+    return articleLower.includes(searchLower) || brandLower.includes(searchLower) || fullText.includes(searchLower);
+  });
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -60,19 +71,37 @@ export default function SupplierCombinations({ combinations, supplierName, onClo
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Топ артикул-брендов</h3>
-        <p className={styles.subtitle}>{supplierName}</p>
-        {onClose && (
-          <button className={styles.closeButton} onClick={onClose}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
-        )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <div style={{ flex: 1 }}>
+            <h3 className={styles.title}>Топ артикул-брендов</h3>
+            <p className={styles.subtitle}>{supplierName}</p>
+          </div>
+          {onClose && (
+            <button className={styles.closeButton} onClick={onClose}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          )}
+        </div>
+        <div className={styles.searchWrapper}>
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder="Поиск по артикулу или бренду..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
       <div className={styles.content}>
         <div className={styles.list}>
-          {combinations.map((combination, index) => (
+          {filteredCombinations.length === 0 ? (
+            <div className={styles.placeholder}>
+              <p className={styles.placeholderText}>Ничего не найдено</p>
+            </div>
+          ) : (
+            filteredCombinations.map((combination, index) => (
             <div key={`${combination.article}-${combination.brand}-${index}`} className={styles.combinationItem}>
               <div className={styles.rank}>
                 <span className={styles.rankNumber}>{index + 1}</span>
@@ -112,7 +141,8 @@ export default function SupplierCombinations({ combinations, supplierName, onClo
                 </div>
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

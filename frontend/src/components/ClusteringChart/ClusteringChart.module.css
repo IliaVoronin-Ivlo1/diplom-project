@@ -1,5 +1,5 @@
 .chartContainer {
-  background: var(--secondary-dark);
+  background: var(--chart-container-bg);
   border-radius: 12px;
   box-shadow: 
     var(--shadow-xl),

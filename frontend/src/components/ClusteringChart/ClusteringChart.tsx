@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<any, any>) => {
         border: '1px solid var(--border-primary)',
         borderRadius: '8px',
         padding: '12px',
-        color: '#ffffff'
+        color: 'var(--text-primary)'
       }}>
         <div style={{ fontWeight: 600, marginBottom: '4px', fontSize: '14px' }}>
           {data.name}

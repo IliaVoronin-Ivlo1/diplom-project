@@ -37,7 +37,6 @@ class GeneticAlgorithmService implements GeneticAlgorithmServiceInterface
             $allSuppliersRanking = DB::table('genetic_algorithm_supplier_rankings')
                 ->where('run_id', $latestRun->id)
                 ->orderBy('rank')
-                ->limit(10)
                 ->select('supplier_id as id', 'service_name', 'name', 'fitness_score', 
                          'avg_price', 'success_rate', 'avg_delivery_time', 'denial_rate', 
                          'orders_count', 'total_revenue')
@@ -80,7 +79,6 @@ class GeneticAlgorithmService implements GeneticAlgorithmServiceInterface
                 $combinations = DB::table('genetic_algorithm_article_brand_rankings')
                     ->where('supplier_ranking_id', $supplierRankingId)
                     ->orderBy('rank')
-                    ->limit(20)
                     ->select('article', 'brand', 'fitness_score', 'orders_count', 'success_rate')
                     ->get()
                     ->map(function ($combo) {
@@ -146,7 +144,6 @@ class GeneticAlgorithmService implements GeneticAlgorithmServiceInterface
             $combinations = DB::table('genetic_algorithm_article_brand_rankings')
                 ->where('supplier_ranking_id', $supplierRanking->id)
                 ->orderBy('rank')
-                ->limit(20)
                 ->select('article', 'brand', 'fitness_score', 'orders_count', 'success_rate', 'avg_price', 'avg_delivery_time', 'total_revenue', 'denial_rate')
                 ->get()
                 ->map(function ($combo) {

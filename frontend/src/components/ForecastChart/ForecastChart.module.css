@@ -1,6 +1,6 @@
 .container {
   flex: 1;
-  background: var(--secondary-dark);
+  background: var(--chart-container-bg);
   border-radius: 12px;
   border: 1px solid var(--border-primary);
   padding: 24px;
