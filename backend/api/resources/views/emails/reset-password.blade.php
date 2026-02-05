@@ -13,26 +13,25 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(180deg, #0a0b0d 0%, #12141a 100%);
+            background: linear-gradient(180deg, #eef0f4 0%, #e5e7eb 100%);
             padding: 40px 20px;
         }
         
         .container {
             max-width: 600px;
             margin: 0 auto;
-            background: #12141a;
+            background: #ffffff;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            border: 1px solid #2a2d35;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e3e8;
         }
         
         .header {
-            background: linear-gradient(135deg, #1a1d25 0%, #23262f 100%);
+            background: linear-gradient(135deg, #f8f9fb 0%, #f1f3f5 100%);
             padding: 40px 30px;
             text-align: center;
-            border-bottom: 2px solid;
-            border-image: linear-gradient(90deg, transparent, #4a9eff, transparent) 1;
+            border-bottom: 2px solid #4a9eff;
         }
         
         .logo {
@@ -44,26 +43,26 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
+            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
         }
         
         .logo-text {
             font-size: 48px;
             font-weight: 700;
-            color: #0a0b0d;
+            color: #ffffff;
             font-family: Georgia, serif;
         }
         
         .header-title {
             font-size: 28px;
             font-weight: 600;
-            color: #e4e6eb;
+            color: #1a1d25;
             margin-bottom: 8px;
         }
         
         .header-subtitle {
             font-size: 16px;
-            color: #8b92a4;
+            color: #5a6070;
         }
         
         .content {
@@ -73,20 +72,20 @@
         .greeting {
             font-size: 20px;
             font-weight: 600;
-            color: #e4e6eb;
+            color: #1a1d25;
             margin-bottom: 20px;
         }
         
         .message {
             font-size: 16px;
             line-height: 1.6;
-            color: #8b92a4;
+            color: #4b5563;
             margin-bottom: 30px;
         }
         
         .email-box {
-            background: #1a1d25;
-            border: 1px solid #2a2d35;
+            background: #f8f9fb;
+            border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 16px;
             margin-bottom: 30px;
@@ -94,13 +93,13 @@
         
         .email-label {
             font-size: 13px;
-            color: #8b92a4;
+            color: #6b7280;
             margin-bottom: 8px;
         }
         
         .email-value {
             font-size: 16px;
-            color: #4a9eff;
+            color: #2563eb;
             font-weight: 600;
         }
         
@@ -119,31 +118,31 @@
             font-size: 16px;
             font-weight: 600;
             letter-spacing: 0.3px;
-            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
+            box-shadow: 0 2px 8px rgba(74, 158, 255, 0.35);
             transition: all 0.3s ease;
         }
         
         .reset-button:hover {
-            box-shadow: 0 6px 16px rgba(74, 158, 255, 0.5);
+            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.45);
             transform: translateY(-2px);
         }
         
         .divider {
             height: 1px;
-            background: linear-gradient(90deg, transparent, #2a2d35, transparent);
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
             margin: 30px 0;
         }
         
         .info-text {
             font-size: 14px;
-            color: #5a6070;
+            color: #4b5563;
             line-height: 1.6;
             margin-bottom: 12px;
         }
         
         .link-box {
-            background: #0f1015;
-            border: 1px solid #2a2d35;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
             border-radius: 6px;
             padding: 12px;
             margin: 20px 0;
@@ -152,25 +151,25 @@
         
         .link-text {
             font-size: 13px;
-            color: #4a9eff;
+            color: #2563eb;
             text-decoration: none;
         }
         
         .footer {
-            background: #0a0b0d;
+            background: #f8f9fb;
             padding: 30px;
             text-align: center;
-            border-top: 1px solid #2a2d35;
+            border-top: 1px solid #e5e7eb;
         }
         
         .footer-text {
             font-size: 13px;
-            color: #5a6070;
+            color: #6b7280;
             line-height: 1.6;
         }
         
         .footer-brand {
-            color: #4a9eff;
+            color: #2563eb;
             font-weight: 600;
             text-decoration: none;
         }

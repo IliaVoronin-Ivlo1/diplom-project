@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { ArticleBrandCombination } from '@/services/genetic-algorithm.service';
 import styles from './SupplierCombinations.module.css';
 
+type CombinationWithRank = ArticleBrandCombination & { originalRank: number };
+
 interface SupplierCombinationsProps {
   combinations: ArticleBrandCombination[];
   supplierName: string;
@@ -14,7 +16,12 @@ interface SupplierCombinationsProps {
 export default function SupplierCombinations({ combinations, supplierName, onClose, loading = false }: SupplierCombinationsProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredCombinations = combinations.filter(combination => {
+  const combinationsWithRank: CombinationWithRank[] = combinations.map((combination, index) => ({
+    ...combination,
+    originalRank: index + 1
+  }));
+
+  const filteredCombinations = combinationsWithRank.filter(combination => {
     const searchLower = searchTerm.toLowerCase();
     const articleLower = combination.article.toLowerCase();
     const brandLower = combination.brand.toLowerCase();
@@ -104,7 +111,7 @@ export default function SupplierCombinations({ combinations, supplierName, onClo
             filteredCombinations.map((combination, index) => (
             <div key={`${combination.article}-${combination.brand}-${index}`} className={styles.combinationItem}>
               <div className={styles.rank}>
-                <span className={styles.rankNumber}>{index + 1}</span>
+                <span className={styles.rankNumber}>{combination.originalRank}</span>
               </div>
               <div className={styles.combinationInfo}>
                 <div className={styles.combinationName}>

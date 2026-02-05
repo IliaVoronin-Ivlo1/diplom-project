@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Supplier } from '@/services/reverse-genetic-algorithm.service';
 import styles from './ArticleBrandSuppliers.module.css';
 
+type SupplierWithRank = Supplier & { originalRank: number };
+
 interface ArticleBrandSuppliersProps {
   suppliers: Supplier[];
   articleBrand: { article: string; brand: string };
@@ -13,7 +15,12 @@ interface ArticleBrandSuppliersProps {
 export default function ArticleBrandSuppliers({ suppliers, articleBrand, loading = false }: ArticleBrandSuppliersProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredSuppliers = suppliers.filter(supplier => {
+  const suppliersWithRank: SupplierWithRank[] = suppliers.map((supplier, index) => ({
+    ...supplier,
+    originalRank: index + 1
+  }));
+
+  const filteredSuppliers = suppliersWithRank.filter(supplier => {
     const searchLower = searchTerm.toLowerCase();
     const serviceName = (supplier.service_name || '').toLowerCase();
     const supplierName = (supplier.supplier_name || '').toLowerCase();
@@ -77,7 +84,7 @@ export default function ArticleBrandSuppliers({ suppliers, articleBrand, loading
             filteredSuppliers.map((supplier, index) => (
             <div key={`${supplier.supplier_id}-${index}`} className={styles.supplierItem}>
               <div className={styles.rank}>
-                <span className={styles.rankNumber}>{index + 1}</span>
+                <span className={styles.rankNumber}>{supplier.originalRank}</span>
               </div>
               <div className={styles.supplierInfo}>
                 <div className={styles.supplierName}>{supplier.service_name || supplier.supplier_name}</div>
